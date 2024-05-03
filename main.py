@@ -2,13 +2,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import geopandas as gpd
 df = pd.concat(
-    map(pd.read_csv, ['output_0.csv', 'output_1.csv', 'output_2.csv', 'output_3.csv', 'output_4.csv', 'output_5.csv', 'output_6.csv', 'output_7.csv'])
+    map(pd.read_csv, ['data\output_0.csv', 'data\output_1.csv', 'data\output_2.csv', 'data\output_3.csv', 'data\output_4.csv', 'data\output_5.csv', 'data\output_6.csv', 'data\output_7.csv'])
 )
 
-country = gpd.read_file("C:\\Users\\1109367\\idp-final-project\\gz_2010_us_040_00_5m.json")
+country = gpd.read_file("data\gz_2010_us_040_00_5m.json")
 country = country[(country['NAME'] != 'District of Columbia') & (country['NAME'] != 'Puerto Rico')]
-country.axis("off")
-country.plot()
+#country.axis("off")
+fig, ax = plt.subplots(1, figsize=(12,5))
+ax.set_xlim(-180, -65)
+#ax.set_ylim(23, 50)
+country.plot(ax=ax)
 plt.savefig('america.jpg', dpi=600)
 
 def draw_us_inset(gdf, **args):
@@ -19,8 +22,8 @@ def draw_us_inset(gdf, **args):
     gdf.plot(ax=ax, **args)
 
     # Set the extent of the main plot to cut off Alaska & Hawaii
-    # ax.set_xlim(-130, -65)
-    # ax.set_ylim(23, 50)
+    ax.set_xlim(-130, -65)
+    ax.set_ylim(0, 80)
 
     # helper method to plot both insets without a border, no legend, correct vmin/vmax
     def inset(position, name, xlim=None):
@@ -52,4 +55,4 @@ def draw_us_inset(gdf, **args):
     inset([0.37, 0.19, 0.05, 0.15], 'Hawaii')
 
 draw_us_inset(country)
-country.savefig("inset.jpg")
+plt.savefig("inset.jpg")
