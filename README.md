@@ -1,5 +1,9 @@
 Data Science Final Project 
 
+TO-DO:
+Scatterplot w/ longitude, latitude
+Create new TimeSeries
+....
 
 
 Moosavi, Sobhan, Mohammad Hossein Samavatian, Srinivasan Parthasarathy, and Rajiv Ramnath. “A Countrywide Traffic Accident Dataset.”, 2019.
