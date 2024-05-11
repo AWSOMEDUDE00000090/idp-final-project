@@ -1,8 +1,8 @@
 Data Science Final Project 
 
 TO-DO:
-Scatterplot w/ longitude, latitude
 Create new TimeSeries
+Highway Geospatial
 ....
 
 
