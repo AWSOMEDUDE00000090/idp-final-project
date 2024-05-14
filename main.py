@@ -21,10 +21,9 @@ print("So we decided to delete DC, as its not a state.")
 '''
 
 country = country[(country['NAME'] != 'District of Columbia') & (country['NAME'] != 'Puerto Rico') & (country['NAME'] != 'Alaska') & (country['NAME'] != 'Hawaii')]
-#country.axis("off")
+
 fig, ax = plt.subplots(1, figsize=(12,5))
-#ax.set_xlim(-180, -65)
-#ax.set_ylim(23, 50)
+
 country.boundary.plot(ax=ax,color="black")
 
 gdf2 = gpd.GeoDataFrame(
@@ -53,9 +52,15 @@ missing_kwds={
         "label": "Missing values",
     },
 '''
+def highways():
+    gdf = pd.concat(
+    map(gpd.read_file, ['data\National_Highway_System_(NHS)_1.csv', 'data\National_Highway_System_(NHS)_2.csv', 'data\National_Highway_System_(NHS)_3.csv', 'data\National_Highway_System_(NHS)_4.csv'])
+    )
+    gdf 
 
 #highway vs city stuff, where we compare which one is more likely to get in accident
 #https://stackoverflow.com/questions/69082127/plot-heatmap-kdeplot-with-geopandas
 #https://altair-viz.github.io/gallery/radial_chart.html
 #bts.gov
+
 plt.savefig('america.jpg', dpi=600)
