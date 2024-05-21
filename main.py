@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import geopandas as gpd
 df = pd.concat(
-    map(pd.read_csv, ['data\output_0.csv', 'data\output_1.csv', 'data\output_2.csv', 'data\output_3.csv', 'data\output_4.csv', 'data\output_5.csv', 'data\output_6.csv', 'data\output_7.csv'])
+    map(pd.read_csv, ['data/output_0.csv', 'data\output_1.csv', 'data\output_2.csv', 'data\output_3.csv', 'data\output_4.csv', 'data\output_5.csv', 'data\output_6.csv', 'data\output_7.csv'])
 )
 
 country = gpd.read_file("data\gz_2010_us_040_00_5m.json")
@@ -58,4 +58,4 @@ missing_kwds={
 #https://stackoverflow.com/questions/69082127/plot-heatmap-kdeplot-with-geopandas
 #https://altair-viz.github.io/gallery/radial_chart.html
 #bts.gov
-plt.savefig('america.jpg', dpi=600)
+plt.savefig('plots/america.jpg', dpi=600)
