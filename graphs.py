@@ -74,7 +74,7 @@ def makeGraphs(df,country,highgdf):
     '''
     #temp = df.groupby('Severity')['Visibility(mi)'].unique()
     #print(temp.head())
-    fig = px.box(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
+    fig = px.violin(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
     fig.update_traces(marker_color='green')
     fig.show()
     '''
