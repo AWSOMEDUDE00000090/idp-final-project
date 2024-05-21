@@ -73,10 +73,19 @@ def makeGraphs(df,country,highgdf):
         },
     '''
     #temp = df.groupby('Severity')['Visibility(mi)'].unique()
-    #print(temp.head())
+    temp = df['Visibility(mi)'].value_counts()
+    print(temp.head())
+    fig = px.pie(temp, values='count', names=temp.index, title='Percentage of accidents with visibilities')
+    fig.show()
+    temp2 = temp[temp.index != 10]
+    print(temp2.head())
+    fig = px.pie(temp2, values='count', names=temp2.index, title='Percentage of accidents with visibilities (excluding visibilty 10)')
+    fig.show()
+
     fig = px.violin(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
     fig.update_traces(marker_color='green')
     fig.show()
+
     '''
     # Create figure
     fig = go.Figure()
@@ -196,4 +205,5 @@ def makeGraphs(df,country,highgdf):
     #bts.gov
     #print(highgdf.head())
     plt.savefig('america.jpg', dpi=600)
+    plt.close()
     print("End")
