@@ -72,8 +72,9 @@ def makeGraphs(df,country,highgdf):
             "label": "Missing values",
         },
     '''
-    #temp = df.groupby()
-    fig = px.bar(df, x='Severity', y='Visibility(mi)')
+    #temp = df.groupby('Severity')['Visibility(mi)'].unique()
+    #print(temp.head())
+    fig = px.box(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
     fig.update_traces(marker_color='green')
     fig.show()
     '''
