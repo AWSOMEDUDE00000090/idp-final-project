@@ -34,7 +34,10 @@ if __name__ == "__main__":
             end = time.perf_counter()
             print("highway data loaded! took:",(end-start))
         print("Starting main!")
-        graphs.makeGraphs(df,country,highgdf)
+        try:
+            graphs.makeGraphs(df,country,highgdf)
+        except:
+            print("graphs has failed")
         print("Press enter to re-run the script, CTRL-C to exit")
         sys.stdin.readline()
         reload(graphs) #needed to kill process and load the new code
