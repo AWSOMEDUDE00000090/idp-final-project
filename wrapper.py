@@ -29,10 +29,10 @@ if __name__ == "__main__":
             print("country loaded! took:",(end-start))
         if highgdf == None:
             start = time.perf_counter()
-            print("Loading highway data into ram!")
+            print("Loading highway data into ram! estimated time: 185 sec or 3 min")
             highgdf = graphs.gethighgdf()
             end = time.perf_counter()
-            print("highway data loaded! estimated time: 185 sec or 3 min took:",(end-start))
+            print("highway data loaded! took:",(end-start))
         print("Starting main!")
         graphs.makeGraphs(df,country,highgdf)
         print("Press enter to re-run the script, CTRL-C to exit")
