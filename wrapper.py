@@ -1,6 +1,7 @@
 import sys
 import graphs
 from importlib import reload
+import time
 
 df = None
 country = None
@@ -13,18 +14,25 @@ if __name__ == "__main__":
         #and keep it in this extra python process
         #all the processing and plotting is done in makeGraphs
         print("Starting process!")
-        if not df:
+        
+        if df == None:
+            start = time.perf_counter()
             print("Loading df into ram!")
             df = graphs.getgdf()
-            print("df loaded!")
-        if not country:
+            end = time.perf_counter()
+            print("df loaded! took:",(end-start))
+        if country == None:
+            start = time.perf_counter()
             print("Loading country into ram!")
             country = graphs.getcountry()
-            print("country loaded!")
-        if not highgdf:
+            end = time.perf_counter()
+            print("country loaded! took:",(end-start))
+        if highgdf == None:
+            start = time.perf_counter()
             print("Loading highway data into ram!")
             highgdf = graphs.gethighgdf()
-            print("highway data loaded!")
+            end = time.perf_counter()
+            print("highway data loaded! estimated time: 185 sec or 3 min took:",(end-start))
         print("Starting main!")
         graphs.makeGraphs(df,country,highgdf)
         print("Press enter to re-run the script, CTRL-C to exit")

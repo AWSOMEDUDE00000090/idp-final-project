@@ -1,6 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import geopandas as gpd
+#import manim doesn't work we are using plotly lmao
+import plotly as plo
 #cool idea, https://stackoverflow.com/questions/6687660/keep-persistent-variables-in-memory-between-runs-of-python-script we gonna make wrapper for
 #data, and it can rerun new script
 
@@ -73,6 +75,6 @@ def makeGraphs(df,country,highgdf):
     #https://stackoverflow.com/questions/69082127/plot-heatmap-kdeplot-with-geopandas
     #https://altair-viz.github.io/gallery/radial_chart.html
     #bts.gov
-    print(highgdf.head())
+    #print(highgdf.head())
     plt.savefig('america.jpg', dpi=600)
     print("End")
