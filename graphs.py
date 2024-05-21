@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 #cool idea, https://stackoverflow.com/questions/6687660/keep-persistent-variables-in-memory-between-runs-of-python-script we gonna make wrapper for
 #data, and it can rerun new script
+import mach_learning as ml
 
 def getgdf():
     df = pd.concat(
@@ -73,6 +74,8 @@ def makeGraphs(df,country,highgdf):
         },
     '''
     #temp = df.groupby('Severity')['Visibility(mi)'].unique()
+
+    #would be nice to take the ones below 5% and plot them on a different pie, cuz its so small, while unifying them in the bigger pie
     temp = df['Visibility(mi)'].value_counts()
     print(temp.head())
     fig = px.pie(temp, values='count', names=temp.index, title='Percentage of accidents with visibilities')
