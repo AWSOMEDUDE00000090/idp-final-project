@@ -73,7 +73,8 @@ def makeGraphs(df,country,highgdf):
         },
     '''
     #temp = df.groupby()
-    fig = px.bar(df, x='Severity', y='Visibility(mi)', color="smoker")
+    fig = px.bar(df, x='Severity', y='Visibility(mi)')
+    fig.update_traces(marker_color='green')
     fig.show()
     '''
     # Create figure

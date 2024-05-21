@@ -3,6 +3,7 @@ import graphs
 from importlib import reload
 import time
 import pandas as pd
+import traceback
 
 df = pd.DataFrame()
 country = pd.DataFrame()
@@ -38,7 +39,9 @@ if __name__ == "__main__":
         try:
             graphs.makeGraphs(df,country,highgdf)
         except:
+            # import module 
             print("graphs has failed")
+            traceback.print_exc()
         print("Press enter to re-run the script, CTRL-C to exit")
         sys.stdin.readline()
         reload(graphs) #needed to kill process and load the new code
