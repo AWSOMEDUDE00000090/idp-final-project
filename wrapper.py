@@ -2,10 +2,11 @@ import sys
 import graphs
 from importlib import reload
 import time
+import pandas as pd
 
-df = None
-country = None
-highgdf = None
+df = pd.DataFrame()
+country = pd.DataFrame()
+highgdf = pd.DataFrame()
 if __name__ == "__main__":
     while True:
         #we load our gdfs, into ram in wrapper so we can edit
@@ -15,19 +16,19 @@ if __name__ == "__main__":
         #all the processing and plotting is done in makeGraphs
         print("Starting process!")
         
-        if df == None:
+        if df.empty:
             start = time.perf_counter()
             print("Loading df into ram!")
             df = graphs.getgdf()
             end = time.perf_counter()
             print("df loaded! took:",(end-start))
-        if country == None:
+        if country.empty:
             start = time.perf_counter()
             print("Loading country into ram!")
             country = graphs.getcountry()
             end = time.perf_counter()
             print("country loaded! took:",(end-start))
-        if highgdf == None:
+        if highgdf.empty:
             start = time.perf_counter()
             print("Loading highway data into ram! estimated time: 185 sec or 3 min")
             highgdf = graphs.gethighgdf()
