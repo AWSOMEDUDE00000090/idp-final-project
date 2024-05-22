@@ -58,6 +58,10 @@ def makeGraphs(df,country,highgdf):
     df, geometry=gpd.points_from_xy(df.Start_Lng,df.Start_Lat), crs="EPSG:4326"
     )
 
+    #turn off tick lables, as they aren't usefull
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    plt.title('Crash Locations in the US visualized (February 2016 to Dec 2020)')
     gdf2.plot(aspect=1,ax=ax,markersize=0.1,cmap='PuBu') #column="POP2010"
     plt.savefig('america.jpg', dpi=600)
 
@@ -70,11 +74,16 @@ def makeGraphs(df,country,highgdf):
     #ax.pie(temp, labels=temp.index,autopct='%1.1f%%')
     country2 = country.merge(df2, left_on='NAME', right_on='State',how="left")
     print(country2.head())
+    plt.title('Total Crash per state in the US visualized (February 2016 to Dec 2020)')
+    #TODO color by severity
+    #turn off tick lables, as they aren't usefull
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
     country2.plot(column = 'ID',ax=ax,legend=True)
 
     #plt.xlabel('x label')
     #plt.ylabel('y label')
-    plt.title('Total Crashes Per State')
+    plt.title('Total Crashes Per State (February 2016 to Dec 2020)')
 
     plt.savefig('states.jpg', dpi=600)
     #adjust for population of state (most recent data for pop is 2019)
@@ -82,11 +91,15 @@ def makeGraphs(df,country,highgdf):
     country2 = country2.merge(df3, left_on='NAME', right_on='Geographic Area',how="left")
     #February 2016 to Dec 2020 crash data, using 2020 census #
     country2["2020"] = country2["2020"].apply(lambda x: int(x.replace(",", "")))
+    #TODO need to limit Start_Time to 2020
     country2["crashsesperpop"] = country2["ID"] / country2["2020"]
     print(country2.head())
     fig, ax = plt.subplots()
+    #turn off tick lables, as they aren't usefull
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
     country2.plot(column = 'crashsesperpop',ax=ax,legend=True)
-    plt.title('Crashes Per Person Per State')
+    plt.title('Crashes Per Person Per State (2020)')
     plt.savefig('statesadjusted.jpg', dpi=600)
     #graph looking at if states with massive # of crashes corolate to population
     #goal of figuring out what conditions are most common in states with most crashes
