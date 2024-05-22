@@ -86,6 +86,8 @@ def makeGraphs(df,country,highgdf):
     plt.title('Total Crashes Per State (February 2016 to Dec 2020)')
 
     plt.savefig('states.jpg', dpi=600)
+    #graph looking at if states with massive # of crashes corolate to population
+    #goal of figuring out what conditions are most common in states with most crashes
     #adjust for population of state (most recent data for pop is 2019)
     df3= pd.read_csv("NST-EST2022-POP.csv")
     country2 = country2.merge(df3, left_on='NAME', right_on='Geographic Area',how="left")
@@ -101,13 +103,47 @@ def makeGraphs(df,country,highgdf):
     country2.plot(column = 'crashsesperpop',ax=ax,legend=True)
     plt.title('Crashes Per Person Per State (2020)')
     plt.savefig('statesadjusted.jpg', dpi=600)
-    #graph looking at if states with massive # of crashes corolate to population
-    #goal of figuring out what conditions are most common in states with most crashes
-
 
     #Bar Plot of # of crashes based on weather conditions
+    #df['ID'].count()
     #Bar plot with different types of roads and the # of accidents
+    common = df.loc[:,['Amenity','Bump','Crossing','Give_Way','Junction','No_Exit','Railway','Roundabout','Station','Stop','Traffic_Calming','Traffic_Signal','Turning_Loop']].value_counts().reset_index()
 
+    def makename(row):
+        vals = ['Amenity','Bump','Crossing','Give_Way','Junction','No_Exit','Railway','Roundabout','Station','Stop','Traffic_Calming','Traffic_Signal','Turning_Loop']
+        out = ""
+        for i,v in zip(row,vals):
+            if i:
+                if out != "":
+                    out += " and "+ v
+                else:
+                    out+= v
+        if out == "":
+            return "Nothing"
+        else:
+            return out
+    
+    def addlabels(x,y):
+        for i in range(len(x)):
+            loc = y[i]
+            if i == 0:
+                loc = loc //2
+            plt.text(i, loc, x[i] + f" ({y[i]})",rotation = 90,ha = 'center',va='bottom')
+
+    #i did a little clever find and replace, but this sucks to look at
+    #,common['Bump'],common['Crossing'],common['Give_Way'],common['Junction'],common['No_Exit'],common['Railway'],common['Roundabout'],common['Station'],common['Stop'],common['Traffic_Calming'],common['Traffic_Signal'],common['Turning_Loop']
+    common["Name"] = common.apply(makename,axis=1)
+    print(common.head())
+    common = common.nlargest(10, 'count')
+    fig, ax = plt.subplots()
+    #plt.xticks(rotation=90)
+    ax.set_xticklabels([])
+    plt.title('10 most common elements near a crash (February 2016 to Dec 2020)')
+    addlabels(common["Name"], common['count'])
+    ax.bar(common["Name"], common['count'])#, label=bar_labels, color=bar_colors
+    plt.savefig('situations.jpg', dpi=600)
+    #plt.bar(courses, values, color ='maroon', width = 0.4)
+    
 
     '''
     cmap vals: 'Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', 'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r', 'Grays', 
