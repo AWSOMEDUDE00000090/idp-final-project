@@ -9,6 +9,11 @@ import plotly.express as px
 #data, and it can rerun new script
 import mach_learning as ml
 
+#https://www.census.gov/data/tables/time-series/demo/popest/2020s-state-total.html
+#Suggested Citation:				
+#Annual Estimates of the Resident Population for the United States, Regions, States, District of Columbia, and Puerto Rico: April 1, 2020 to July 1, 2022 (NST-EST2022-POP)				
+#Source: U.S. Census Bureau, Population Division				
+#Release Date: December 2022				
 def getgdf():
     df = pd.concat(
     map(pd.read_csv, ['data\output_0.csv', 'data\output_1.csv', 'data\output_2.csv', 'data\output_3.csv', 'data\output_4.csv', 'data\output_5.csv', 'data\output_6.csv', 'data\output_7.csv'])
@@ -54,6 +59,43 @@ def makeGraphs(df,country,highgdf):
     )
 
     gdf2.plot(aspect=1,ax=ax,markersize=0.1,cmap='PuBu') #column="POP2010"
+    plt.savefig('america.jpg', dpi=600)
+
+    #show crashes per state
+    temp = df.groupby('State')['ID'].count()
+    df2= pd.read_csv("states.csv")
+    df2 = df2.merge(temp, left_on='Abbreviation', right_on='State',how="left")
+    print(df2.head())
+    fig, ax = plt.subplots()
+    #ax.pie(temp, labels=temp.index,autopct='%1.1f%%')
+    country2 = country.merge(df2, left_on='NAME', right_on='State',how="left")
+    print(country2.head())
+    country2.plot(column = 'ID',ax=ax,legend=True)
+
+    #plt.xlabel('x label')
+    #plt.ylabel('y label')
+    plt.title('Total Crashes Per State')
+
+    plt.savefig('states.jpg', dpi=600)
+    #adjust for population of state (most recent data for pop is 2019)
+    df3= pd.read_csv("NST-EST2022-POP.csv")
+    country2 = country2.merge(df3, left_on='NAME', right_on='Geographic Area',how="left")
+    #February 2016 to Dec 2020 crash data, using 2020 census #
+    country2["2020"] = country2["2020"].apply(lambda x: int(x.replace(",", "")))
+    country2["crashsesperpop"] = country2["ID"] / country2["2020"]
+    print(country2.head())
+    fig, ax = plt.subplots()
+    country2.plot(column = 'crashsesperpop',ax=ax,legend=True)
+    plt.title('Crashes Per Person Per State')
+    plt.savefig('statesadjusted.jpg', dpi=600)
+    #graph looking at if states with massive # of crashes corolate to population
+    #goal of figuring out what conditions are most common in states with most crashes
+
+
+    #Bar Plot of # of crashes based on weather conditions
+    #Bar plot with different types of roads and the # of accidents
+
+
     '''
     cmap vals: 'Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', 'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r', 'Grays', 
     'Greens', 'Greens_r', 'Greys', 'Greys_r', 'OrRd', 'OrRd_r', 'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r', 'Paired', 'Paired_r', 'Pastel1', 'Pastel1_r', 'Pastel2', 'Pastel2_r', 'PiYG',
@@ -83,10 +125,7 @@ def makeGraphs(df,country,highgdf):
     print(temp.head())
     fig = px.pie(temp, values='count', names=temp.index, title='Percentage of accidents with visibilities')
     fig.show()
-    temp2 = temp[temp.index != 10]
-    print(temp2.head())
-    fig = px.pie(temp2, values='count', names=temp2.index, title='Percentage of accidents with visibilities (excluding visibilty 10)')
-    fig.show()
+    #temp2 = temp[temp.index != 10]
 
     fig = px.violin(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
     fig.update_traces(marker_color='green')
@@ -210,6 +249,6 @@ def makeGraphs(df,country,highgdf):
     #https://altair-viz.github.io/gallery/radial_chart.html
     #bts.gov
     #print(highgdf.head())
-    plt.savefig('america.jpg', dpi=600)
+    
     plt.close()
     print("End")

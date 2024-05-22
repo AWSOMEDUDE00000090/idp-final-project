@@ -9,6 +9,8 @@ import traceback
 df = pd.DataFrame()
 country = pd.DataFrame()
 highgdf = pd.DataFrame()
+#We dont do anything with highway right now so i disabled it, just change to true to load highway
+usehighway = False
 if __name__ == "__main__":
     while True:
         #we load our gdfs, into ram in wrapper so we can edit
@@ -30,7 +32,7 @@ if __name__ == "__main__":
             country = graphs.getcountry()
             end = time.perf_counter()
             print("country loaded! took:",(end-start))
-        if highgdf.empty:
+        if usehighway and highgdf.empty:
             start = time.perf_counter()
             print("Loading highway data into ram! estimated time: 185 sec or 3 min")
             highgdf = graphs.gethighgdf()
