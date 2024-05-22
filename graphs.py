@@ -27,8 +27,8 @@ def gethighgdf():
 
 def makeGraphs(df,country,highgdf):
     #machine learning test
-    f,v = ml.prep_data(df)
-    model = ml.model_regression(f,v,0.3)
+    #f,v = ml.prep_data(df)
+    #model = ml.model_regression(f,v,0.3)
     '''
     df2= pd.read_csv("states.csv")
 
