@@ -15,6 +15,7 @@ import pandas as pd
 #https://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html
 
 def model_regression(features, labels, test_size=0.3, validation_split = 0.5): #validation split not required for regression
+    print("starting model training")
     # Split the data into training and testing sets
     train_f, test_f, train_l, test_l = train_test_split(features, labels, test_size=test_size)
 
@@ -50,18 +51,16 @@ def show_importance(model, features):
     for index, feat_importance in enumerate(importance):
         print(f'Feature: {features.columns[index]}, Importance: {feat_importance:.2%}')
 
-def load_data(accident_df):
-    # data is not provided for the read. Sorry.
-    df = accident_df
-    # strip out only the things we need
-    #Weather_Condition issue
-    df = df[["ID", "Severity","Start_Time","Start_Lat","Start_Lng","Temperature(F)","Wind_Chill(F)","Humidity(%)",
+def prep_data(df):
+    df = df[["ID","Start_Time","Start_Lat","Start_Lng","Temperature(F)","Wind_Chill(F)","Humidity(%)",
              "Pressure(in)","Visibility(mi)","Wind_Direction","Wind_Speed(mph)","Precipitation(in)","Weather_Condition","Amenity",
              "Bump","Crossing","Give_Way","Junction","No_Exit","Railway","Roundabout","Station","Stop","Traffic_Calming","Traffic_Signal",
-             "Turning_Loop","Sunrise_Sunset","Civil_Twilight","Nautical_Twilight","Astronomical_Twilight"
+             "Turning_Loop","Sunrise_Sunset","Civil_Twilight","Nautical_Twilight","Astronomical_Twilight","Severity"
              ]]
-    features = df[['male', 'sport', 'age']]
-    # sport is categorical data. We definitely need to get_dummies!
-    features = pd.get_dummies(features)
-    labels = df['distance']
-    return df, features, labels
+    df = df.dropna()
+    labels = df["Severity"]
+    features = df.drop('Severity', axis=1)
+    # Weather_Condition is categorical
+    #features = pd.get_dummies(features) #out of memory error, going to hope that it is unescessary
+    print("finished prepping ml data")
+    return features, labels

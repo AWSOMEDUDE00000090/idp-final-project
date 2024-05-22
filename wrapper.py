@@ -1,5 +1,6 @@
 import sys
 import graphs
+import mach_learning as ml
 from importlib import reload
 import time
 import pandas as pd
@@ -44,4 +45,5 @@ if __name__ == "__main__":
             traceback.print_exc()
         print("Press enter to re-run the script, CTRL-C to exit")
         sys.stdin.readline()
+        reload(ml) #needed for graphs import
         reload(graphs) #needed to kill process and load the new code
