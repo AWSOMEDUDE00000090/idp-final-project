@@ -61,7 +61,7 @@ def makeGraphs(df,country,highgdf):
     #turn off tick lables, as they aren't usefull
     ax.set_yticklabels([])
     ax.set_xticklabels([])
-    plt.title('Crash Locations in the US visualized (February 2016 to Dec 2020)')
+    plt.title('Crash Locations in the US visualized February 2016 to Dec 2020')
     gdf2.plot(aspect=1,ax=ax,markersize=0.1,cmap='PuBu') #column="POP2010"
     plt.savefig('america.jpg', dpi=600)
 
@@ -69,12 +69,10 @@ def makeGraphs(df,country,highgdf):
     temp = df.groupby('State')['ID'].count()
     df2= pd.read_csv("states.csv")
     df2 = df2.merge(temp, left_on='Abbreviation', right_on='State',how="left")
-    print(df2.head())
     fig, ax = plt.subplots()
     #ax.pie(temp, labels=temp.index,autopct='%1.1f%%')
     country2 = country.merge(df2, left_on='NAME', right_on='State',how="left")
-    print(country2.head())
-    plt.title('Total Crash per state in the US visualized (February 2016 to Dec 2020)')
+    plt.title('Total Crash per state in the US visualized February 2016 to Dec 2020')
     #TODO color by severity
     #turn off tick lables, as they aren't usefull
     ax.set_yticklabels([])
@@ -83,7 +81,7 @@ def makeGraphs(df,country,highgdf):
 
     #plt.xlabel('x label')
     #plt.ylabel('y label')
-    plt.title('Total Crashes Per State (February 2016 to Dec 2020)')
+    plt.title('Total Crashes Per State February 2016 to Dec 2020')
 
     plt.savefig('states.jpg', dpi=600)
     #graph looking at if states with massive # of crashes corolate to population
@@ -95,7 +93,6 @@ def makeGraphs(df,country,highgdf):
     country2["2020"] = country2["2020"].apply(lambda x: int(x.replace(",", "")))
     #TODO need to limit Start_Time to 2020
     country2["crashsesperpop"] = country2["ID"] / country2["2020"]
-    print(country2.head())
     fig, ax = plt.subplots()
     #turn off tick lables, as they aren't usefull
     ax.set_yticklabels([])
@@ -130,34 +127,31 @@ def makeGraphs(df,country,highgdf):
                 loc = loc //2
             plt.text(i, loc, x[i] + f" ({y[i]})",rotation = 90,ha = 'center',va='bottom')
     common["Name"] = common.apply(makename,axis=1)
-    print(common.head())
     common = common.nlargest(10, 'count')
     fig, ax = plt.subplots()
     #plt.xticks(rotation=90)
     ax.set_xticklabels([])
-    plt.title('10 most common elements near a crash (February 2016 to Dec 2020)')
+    plt.title('10 most common elements near a crash February 2016 to Dec 2020')
     addlabels(common["Name"], common['count'])
     ax.bar(common["Name"], common['count'])#, label=bar_labels, color=bar_colors
     plt.savefig('situations.jpg', dpi=600)
     #plt.bar(courses, values, color ='maroon', width = 0.4)
     
     #Interactive Graphs
+    #TODO probably better to make this a regular graph 
     #would be nice to take the ones below 5% and plot them on a different pie, cuz its so small, while unifying them in the bigger pie
     temp = df['Visibility(mi)'].value_counts()
-    print(temp.head())
-    fig = px.pie(temp, values='count', names=temp.index, title='Percentage of accidents with visibilities')
+    fig = px.pie(temp, values='count', names=temp.index, title='Percentage of Accidents per Visibility')
     fig.show()
     #temp2 = temp[temp.index != 10]
 
     fig = px.violin(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
     fig.update_traces(marker_color='green')
     fig.show()
-
-    #most dangerous times to drive per state
     
     #Our data has 5 fundemental catagories of information about crashes, our whole project
     #is about showing how these 4 different factors contribute to the outcomes of a crash
-    #when = ['Start_Time','Sunrise_Sunset']
+    #when = ['Start_Time','Sunrise_Sunset'] #overall hour plot, per state hour plot
     #where = ['Start_Lat','Start_Lat','State'] #states graph, and united states map DONE
     #weather = ['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)','Visibility(mi)','Wind_Speed(mph)','Precipitation(in)','Weather_Condition'] #visibility interactive graph
     #road_elements = ['Amenity','Bump','Crossing','Give_Way','Junction','No_Exit','Railway','Roundabout','Station','Stop','Traffic_Calming','Traffic_Signal','Turning_Loop'] #graph showing 10 most common road elements
@@ -165,6 +159,56 @@ def makeGraphs(df,country,highgdf):
     #outcomes = ['Distance(mi)','Severity','End_Time','Start_Time'] #End_Time-Start_Time = Duration, Data existing at all means it was crash
     
 
+    #just a graph of accidents over time
+
+    #---dataorg
+    #"2019-06-12 10:10:56"[0:19] --> "2019-06-12 10:10:56"
+    #"2022-12-03 23:37:14.000000000" --> "2022-12-03 23:37:14"
+    df["Start_Time"] = df["Start_Time"].apply(lambda x : str(str(x)[0:19]))
+    df["Start_Time"] = pd.to_datetime(df['Start_Time']) #same as csv parse dates
+    #df['Start_Time'].dt.hour is 0-23, we want to convert to am pm, but its easier to do it in graphing
+    hourly_counts = df.groupby(df['Start_Time'].dt.hour).size() #or .count but pretty sure its the same
+    #end
+
+    fig, ax = plt.subplots()
+    hourly_counts.plot(kind='bar', figsize=(10, 6))
+    plt.xlabel('Hour of the day')
+    plt.ylabel('Count')
+    plt.title('Crash Occurrence Distribution by Hour (Local Time) from February 2016 to Dec 2020') #really annoying name to come up with
+    plt.xticks(range(24), [f"{12 if h == 0 else h if h <= 12 else h - 12}:00 {'AM' if h < 12 else 'PM'}" for h in range(24)], rotation=45,ha='right')
+    plt.grid(True)
+    plt.savefig('whenaccidents.jpg', dpi=600)
+    
+    
+    #when accidents most common per state, hourwise
+
+    #---dataorg
+    temp = df.loc[:,['State','Start_Time']]
+    temp["Hour"] = df['Start_Time'].dt.hour
+    temp = temp.groupby('State')['Hour'].value_counts().reset_index()
+    print(temp)
+    
+    max_indices = temp.groupby('State')['count'].idxmax()
+    temp = temp.loc[max_indices, :]
+    print("now we need to get")
+    print(temp)
+    
+    
+    temp.rename(columns={'State': 'Abbriv'}, inplace=True)
+    #TODO fix reading here instead of elsewhere, and the other time i did this
+    df2= pd.read_csv("states.csv")
+    df2 = df2.merge(temp, left_on='Abbreviation', right_on='Abbriv',how="left")
+    country2 = country.merge(df2, left_on='NAME', right_on='State',how="left")
+    country2["Hour"] = country2["Hour"].apply(lambda h : f"{12 if int(h) == 0 else int(h) if int(h) <= 12 else int(h) - 12}:00 {'AM' if int(h) < 12 else 'PM'}")
+    #end
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    plt.title('Time of Day Most Accidents Happen per State (Local Time)')
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    ax.axis('off')
+    country2.plot(categorical = True,column = 'Hour',ax=ax,legend=True,legend_kwds={'bbox_to_anchor': (1, 0.4)}, cmap='viridis')
+    plt.savefig('whenaccidents_state.jpg', dpi=600)
 
     plt.close()
     print("End")
