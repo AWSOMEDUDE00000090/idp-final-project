@@ -244,5 +244,18 @@ def makeGraphs(df,country,highgdf):
     scattergraph(df,'Wind_Speed(mph)',title='# of crashes against Wind Speed',filename='windspeed.jpg',outliers_val=15000)
     scattergraph(df,'Precipitation(in)',title='# of crashes against Precipitation',filename='precipitation.jpg',outliers_val=50000)
 
+    def road_types_bar(df):
+        df = df.loc[:, "Bump":"Tuning_Loop"]
+        count = (df == True).sum()
+        plt.figure(figsize=(10, 6))
+        count.plot(kind='bar')
+        plt.xlabel('Types of Road')
+        plt.ylabel('Number of Crashes')
+        plt.title('Road Types Compared With Crashes')
+        plt.xticks(rotation=45)
+        plt.savefig("roadtypes.jpg")
+        
+    road_types_bar(df)
+        
     plt.close()
     print("End")

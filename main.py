@@ -58,4 +58,3 @@ missing_kwds={
 #https://stackoverflow.com/questions/69082127/plot-heatmap-kdeplot-with-geopandas
 #https://altair-viz.github.io/gallery/radial_chart.html
 #bts.gov
-plt.savefig('plots/america.jpg', dpi=600)
