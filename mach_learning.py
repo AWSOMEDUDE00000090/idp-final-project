@@ -16,6 +16,8 @@ import pickle #for saving model on pc
 
 #https://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html
 
+#RandomForestClassifier or GradientBoostingClassifier for importance
+
 def model_regression(features, labels, test_size=0.3, validation_split = 0.5): #validation split not required for regression
     print("starting model training")
     # Split the data into training and testing sets
@@ -35,17 +37,42 @@ def model_regression(features, labels, test_size=0.3, validation_split = 0.5): #
     
     return model
 
+def model_mean_square(model,features, labels, test_size=0.3):
+    # Split the data into training and testing sets
+    train_f, test_f, train_l, test_l = train_test_split(features, labels, test_size=test_size)
+    # Test the accuracy: Make predictions and show our MSE
+    label_predictions = model.predict(test_f)
+    print(f'MSE : {mean_squared_error(test_l, label_predictions):.2f}')
+
 def show_coefficients(model, features):
     # Now, get the important of each feature
     # Get the coefficients and feature names
     coefficients = model.coef_
     feature_names = features.columns
-
+    print("features for coeficients size" + str(len(list(feature_names))))
+    print(list(feature_names))
+    #print("coef:")
+    #print(model.coef_)
     # Print the y-intercept
-    print(f'Intercept: {model.intercept_:.0f}')
+    sum = 0
+    for i in model.coef_:
+        for j in i:
+            sum += 1
+    print('total size = ' + str(sum))
+    for i in model.intercept_:
+        #sgdclassifier has multiple intercepts apperantly
+        print(f'Intercept: {i:.0f}')
     # Print the coefficients and feature names
+    '''
+    When there are more coefficients than columns, it means that the model is using additional coefficients to capture the relationships between the features and the target variable
+    '''
     for f, c in zip(feature_names, coefficients):
-        print(f'{f}   : {c:.3f}')
+        #print(f'{f}   : {c:.3f}')
+        print("-------")
+        print(f)
+        print("-------")
+        print(c)
+        print("-------")
 
 def show_importance(model, features):
     # get importance
@@ -64,13 +91,15 @@ def show_importance(model, features):
 #outcomes = ['Distance(mi)','Severity','End_Time','Start_Time'] #End_Time-Start_Time = Duration, Data existing at all means it was crash
 def prep_data(df):
     #weather condition has a lot of dummies
-    essentialcolumns = ['Severity','Start_Time','Sunrise_Sunset','Start_Lat','Start_Lat',
+    essentialcolumns = ['Severity','Start_Time','Sunrise_Sunset','Start_Lat','Start_Lng',
                         'State','Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)',
                         'Visibility(mi)','Wind_Speed(mph)','Precipitation(in)','Weather_Condition',
                         'Amenity','Bump','Crossing','Give_Way','Junction','No_Exit','Railway','Roundabout',
                         'Station','Stop','Traffic_Calming','Traffic_Signal','Turning_Loop']
 
     df = df.loc[:,essentialcolumns]
+    #print(df.info())
+    #print("------")
     df = df.dropna()
     labels = df["Severity"].copy()
     df = df.drop('Severity', axis=1)
@@ -86,20 +115,23 @@ def prep_data(df):
     df = pd.get_dummies(df,columns=["Sunrise_Sunset"]) #out of memory error, going to hope that it is unescessary
     df = pd.get_dummies(df,columns=["State"])
     df = pd.get_dummies(df,columns=["Weather_Condition"])
+    #print(list(df.columns))
     print("finished prepping ml data")
     return df, labels
 
 if __name__ == "__main__":
     model = None
+    newmodel = False
     feat,label = prep_data(pd.concat(
         map(pd.read_csv, ['data\output_0.csv', 'data\output_1.csv', 'data\output_2.csv', 'data\output_3.csv', 'data\output_4.csv', 'data\output_5.csv', 'data\output_6.csv', 'data\output_7.csv'])
         ))
-    if False:
+    if newmodel:
         model = model_regression(feat,label)
-        with open('model.pkl', 'wb') as f:
+        with open('model2.pkl', 'wb') as f:
             pickle.dump(model, f)
     else:
-        with open('model.pkl', 'rb') as f: #load model back into memory
+        with open('model2.pkl', 'rb') as f: #load model back into memory
             model = pickle.load(f)
-    #show_coefficients(model,feat)
-    show_importance(model, feat)
+    model_mean_square(model,feat,label)
+    show_coefficients(model,feat)
+    #show_importance(model, feat)

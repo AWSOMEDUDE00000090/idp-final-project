@@ -144,12 +144,12 @@ def makeGraphs(df,country,highgdf):
     #would be nice to take the ones below 5% and plot them on a different pie, cuz its so small, while unifying them in the bigger pie
     temp = df['Visibility(mi)'].value_counts()
     fig = px.pie(temp, values='count', names=temp.index, title='Percentage of Accidents per Visibility')
-    fig.show()
+    #TODO uncomment fig.show()
     #temp2 = temp[temp.index != 10]
 
     fig = px.violin(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
     fig.update_traces(marker_color='green')
-    fig.show()
+    #TODO uncomment fig.show()
     
     #TODO I have only made graphs exploring these elements with the idea of the existance of their data showing crashing, i haven't looked into their effect on severity, duration, or distance
     
@@ -183,7 +183,23 @@ def makeGraphs(df,country,highgdf):
     plt.grid(True)
     plt.savefig('whenaccidents.jpg', dpi=600)
     
-    
+    #monthly version
+    df["Start_Time"] = df["Start_Time"].apply(lambda x : str(str(x)[0:19]))
+    df["Start_Time"] = pd.to_datetime(df['Start_Time']) #same as csv parse dates
+    #df['Start_Time'].dt.hour is 0-23, we want to convert to am pm, but its easier to do it in graphing
+    monthly_counts = df.groupby(df['Start_Time'].dt.month).size() #or .count but pretty sure its the same
+    #end
+
+    fig, ax = plt.subplots()
+    monthly_counts.plot(kind='bar', figsize=(10, 6))
+    plt.xlabel('Month')
+    plt.ylabel('Count')
+    plt.title('Crash Occurrence Distribution by Month from February 2016 to Dec 2020') #really annoying name to come up with
+    months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    plt.xticks(range(12), months, rotation=45,ha='right')
+    plt.grid(True)
+    plt.savefig('whenaccidents_month.jpg', dpi=600)
+
     #when accidents most common per state, hourwise
 
     #---dataorg
@@ -210,6 +226,35 @@ def makeGraphs(df,country,highgdf):
     ax.axis('off')
     country2.plot(categorical = True,column = 'Hour',ax=ax,legend=True,legend_kwds={'bbox_to_anchor': (1, 0.4)}, cmap='viridis')
     plt.savefig('whenaccidents_state.jpg', dpi=600)
+
+
+    #when accidents most common per state, monthly
+
+    #---dataorg
+    temp = df.loc[:,['State','Start_Time']]
+    temp["Month"] = df['Start_Time'].dt.month
+    temp = temp.groupby('State')['Month'].value_counts().reset_index()
+    
+    max_indices = temp.groupby('State')['count'].idxmax()
+    temp = temp.loc[max_indices, :]
+    
+    
+    temp.rename(columns={'State': 'Abbriv'}, inplace=True)
+    #TODO fix reading here instead of elsewhere, and the other time i did this
+    df2= pd.read_csv("states.csv")
+    df2 = df2.merge(temp, left_on='Abbreviation', right_on='Abbriv',how="left")
+    country2 = country.merge(df2, left_on='NAME', right_on='State',how="left")
+    months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] #also defined
+    country2["Month"] = country2["Month"].apply(lambda h : f"{months[int(h)-1]}")
+    #end
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    plt.title('Month with Most Accidents Happen per State')
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    ax.axis('off')
+    country2.plot(categorical = True,column = 'Month',ax=ax,legend=True,legend_kwds={'bbox_to_anchor': (1, 0.4)}, cmap='viridis')
+    plt.savefig('whenaccidents_state_month.jpg', dpi=600)
 
 
     #weather = ['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)','Visibility(mi)','Wind_Speed(mph)','Precipitation(in)','Weather_Condition']
@@ -255,7 +300,7 @@ def makeGraphs(df,country,highgdf):
         plt.xticks(rotation=45)
         plt.savefig("roadtypes.jpg")
         
-    road_types_bar(df)
+    #road_types_bar(df)
         
     plt.close()
     print("End")
