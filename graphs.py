@@ -7,7 +7,13 @@ import plotly.graph_objects as go
 import plotly.express as px
 #cool idea, https://stackoverflow.com/questions/6687660/keep-persistent-variables-in-memory-between-runs-of-python-script we gonna make wrapper for
 #data, and it can rerun new script
+import mach_learning as ml
 
+#https://www.census.gov/data/tables/time-series/demo/popest/2020s-state-total.html
+#Suggested Citation:				
+#Annual Estimates of the Resident Population for the United States, Regions, States, District of Columbia, and Puerto Rico: April 1, 2020 to July 1, 2022 (NST-EST2022-POP)				
+#Source: U.S. Census Bureau, Population Division				
+#Release Date: December 2022				
 def getgdf():
     df = pd.concat(
     map(pd.read_csv, ['data\output_0.csv', 'data\output_1.csv', 'data\output_2.csv', 'data\output_3.csv', 'data\output_4.csv', 'data\output_5.csv', 'data\output_6.csv', 'data\output_7.csv'])
@@ -25,6 +31,9 @@ def gethighgdf():
     return highgdf
 
 def makeGraphs(df,country,highgdf):
+    #machine learning test
+    #f,v = ml.prep_data(df)
+    #model = ml.model_regression(f,v,0.3)
     '''
     df2= pd.read_csv("states.csv")
 
@@ -49,149 +58,157 @@ def makeGraphs(df,country,highgdf):
     df, geometry=gpd.points_from_xy(df.Start_Lng,df.Start_Lat), crs="EPSG:4326"
     )
 
+    #turn off tick lables, as they aren't usefull
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    plt.title('Crash Locations in the US visualized February 2016 to Dec 2020')
     gdf2.plot(aspect=1,ax=ax,markersize=0.1,cmap='PuBu') #column="POP2010"
-    '''
-    cmap vals: 'Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', 'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r', 'Grays', 
-    'Greens', 'Greens_r', 'Greys', 'Greys_r', 'OrRd', 'OrRd_r', 'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r', 'Paired', 'Paired_r', 'Pastel1', 'Pastel1_r', 'Pastel2', 'Pastel2_r', 'PiYG',
-    'PiYG_r', 'PuBu', 'PuBuGn', 'PuBuGn_r', 'PuBu_r', 'PuOr', 'PuOr_r', 'PuRd', 'PuRd_r', 'Purples', 'Purples_r', 'RdBu', 'RdBu_r', 'RdGy', 'RdGy_r', 'RdPu', 'RdPu_r', 'RdYlBu',
-    'RdYlBu_r', 'RdYlGn', 'RdYlGn_r', 'Reds', 'Reds_r', 'Set1', 'Set1_r', 'Set2', 'Set2_r', 'Set3', 'Set3_r', 'Spectral', 'Spectral_r', 'Wistia', 'Wistia_r', 'YlGn', 'YlGnBu',
-    'YlGnBu_r', 'YlGn_r', 'YlOrBr', 'YlOrBr_r', 'YlOrRd', 'YlOrRd_r', 'afmhot', 'afmhot_r', 'autumn', 'autumn_r', 'binary', 'binary_r', 'bone', 'bone_r', 'brg', 'brg_r', 'bwr',
-    'bwr_r', 'cividis', 'cividis_r', 'cool', 'cool_r', 'coolwarm', 'coolwarm_r', 'copper', 'copper_r', 'cubehelix', 'cubehelix_r', 'flag', 'flag_r', 'gist_earth', 'gist_earth_r',
-    'gist_gray', 'gist_gray_r', 'gist_grey', 'gist_heat', 'gist_heat_r', 'gist_ncar', 'gist_ncar_r', 'gist_rainbow', 'gist_rainbow_r', 'gist_stern', 'gist_stern_r', 'gist_yarg',
-    'gist_yarg_r', 'gist_yerg', 'gnuplot', 'gnuplot2', 'gnuplot2_r', 'gnuplot_r', 'gray', 'gray_r', 'grey', 'hot', 'hot_r', 'hsv', 'hsv_r', 'inferno', 'inferno_r', 'jet', 'jet_r',
-    'magma', 'magma_r', 'nipy_spectral', 'nipy_spectral_r', 'ocean', 'ocean_r', 'pink', 'pink_r', 'plasma', 'plasma_r', 'prism', 'prism_r', 'rainbow', 'rainbow_r', 'seismic', 
-    'seismic_r', 'spring', 'spring_r', 'summer', 'summer_r', 'tab10', 'tab10_r', 'tab20', 'tab20_r', 'tab20b', 'tab20b_r', 'tab20c', 'tab20c_r', 'terrain', 'terrain_r', 'turbo', 
-    'turbo_r', 'twilight', 'twilight_r', 'twilight_shifted', 'twilight_shifted_r', 'viridis', 'viridis_r', 'winter', 'winter_r'
-    '''
-    #passing missing_kwds one can specify the style and label of features containing None or NaN.
-    '''
-    missing_kwds={
-            "color": "lightgrey",
-            "edgecolor": "red",
-            "hatch": "///",
-            "label": "Missing values",
-        },
-    '''
-    #temp = df.groupby()
-    fig = px.bar(df, x='Severity', y='Visibility(mi)', color="smoker")
-    fig.show()
-    '''
-    # Create figure
-    fig = go.Figure()
-
-    # Add surface trace
-    fig.add_trace(go.Heatmap(z=df.values.tolist(), colorscale="Viridis"))
-
-    # Update plot sizing
-    fig.update_layout(
-        width=800,
-        height=900,
-        autosize=False,
-        margin=dict(t=100, b=0, l=0, r=0),
-    )
-
-    # Update 3D scene options
-    fig.update_scenes(
-        aspectratio=dict(x=1, y=1, z=0.7),
-        aspectmode="manual"
-    )
-
-    # Add dropdowns
-    button_layer_1_height = 1.08
-    fig.update_layout(
-        updatemenus=[
-            dict(
-                buttons=list([
-                    dict(
-                        args=["colorscale", "Viridis"],
-                        label="Viridis",
-                        method="restyle"
-                    ),
-                    dict(
-                        args=["colorscale", "Cividis"],
-                        label="Cividis",
-                        method="restyle"
-                    ),
-                    dict(
-                        args=["colorscale", "Blues"],
-                        label="Blues",
-                        method="restyle"
-                    ),
-                    dict(
-                        args=["colorscale", "Greens"],
-                        label="Greens",
-                        method="restyle"
-                    ),
-                ]),
-                direction="down",
-                pad={"r": 10, "t": 10},
-                showactive=True,
-                x=0.1,
-                xanchor="left",
-                y=button_layer_1_height,
-                yanchor="top"
-            ),
-            dict(
-                buttons=list([
-                    dict(
-                        args=["reversescale", False],
-                        label="False",
-                        method="restyle"
-                    ),
-                    dict(
-                        args=["reversescale", True],
-                        label="True",
-                        method="restyle"
-                    )
-                ]),
-                direction="down",
-                pad={"r": 10, "t": 10},
-                showactive=True,
-                x=0.37,
-                xanchor="left",
-                y=button_layer_1_height,
-                yanchor="top"
-            ),
-            dict(
-                buttons=list([
-                    dict(
-                        args=[{"contours.showlines": False, "type": "contour"}],
-                        label="Hide lines",
-                        method="restyle"
-                    ),
-                    dict(
-                        args=[{"contours.showlines": True, "type": "contour"}],
-                        label="Show lines",
-                        method="restyle"
-                    ),
-                ]),
-                direction="down",
-                pad={"r": 10, "t": 10},
-                showactive=True,
-                x=0.58,
-                xanchor="left",
-                y=button_layer_1_height,
-                yanchor="top"
-            ),
-        ]
-    )
-
-    fig.update_layout(
-        annotations=[
-            dict(text="colorscale", x=0, xref="paper", y=1.06, yref="paper",
-                                align="left", showarrow=False),
-            dict(text="Reverse<br>Colorscale", x=0.25, xref="paper", y=1.07,
-                                yref="paper", showarrow=False),
-            dict(text="Lines", x=0.54, xref="paper", y=1.06, yref="paper",
-                                showarrow=False)
-        ])
-
-    fig.show()
-    '''
-    #highway vs city stuff, where we compare which one is more likely to get in accident
-    #https://stackoverflow.com/questions/69082127/plot-heatmap-kdeplot-with-geopandas
-    #https://altair-viz.github.io/gallery/radial_chart.html
-    #bts.gov
-    #print(highgdf.head())
     plt.savefig('america.jpg', dpi=600)
+
+    #show crashes per state
+    temp = df.groupby('State')['ID'].count()
+    df2= pd.read_csv("states.csv")
+    df2 = df2.merge(temp, left_on='Abbreviation', right_on='State',how="left")
+    fig, ax = plt.subplots()
+    #ax.pie(temp, labels=temp.index,autopct='%1.1f%%')
+    country2 = country.merge(df2, left_on='NAME', right_on='State',how="left")
+    plt.title('Total Crash per state in the US visualized February 2016 to Dec 2020')
+    #TODO color by severity
+    #turn off tick lables, as they aren't usefull
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    country2.plot(column = 'ID',ax=ax,legend=True)
+
+    #plt.xlabel('x label')
+    #plt.ylabel('y label')
+    plt.title('Total Crashes Per State February 2016 to Dec 2020')
+
+    plt.savefig('states.jpg', dpi=600)
+    #graph looking at if states with massive # of crashes corolate to population
+    #goal of figuring out what conditions are most common in states with most crashes
+    #adjust for population of state (most recent data for pop is 2019)
+    df3= pd.read_csv("NST-EST2022-POP.csv")
+    country2 = country2.merge(df3, left_on='NAME', right_on='Geographic Area',how="left")
+    #February 2016 to Dec 2020 crash data, using 2020 census #
+    country2["2020"] = country2["2020"].apply(lambda x: int(x.replace(",", "")))
+    #TODO need to limit Start_Time to 2020
+    country2["crashsesperpop"] = country2["ID"] / country2["2020"]
+    fig, ax = plt.subplots()
+    #turn off tick lables, as they aren't usefull
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    country2.plot(column = 'crashsesperpop',ax=ax,legend=True)
+    plt.title('Crashes Per Person Per State (2020)')
+    plt.savefig('statesadjusted.jpg', dpi=600)
+
+    #Bar Plot of # of crashes based on weather conditions
+    #df['ID'].count()
+    #Bar plot with different types of roads and the # of accidents
+    common = df.loc[:,['Amenity','Bump','Crossing','Give_Way','Junction','No_Exit','Railway','Roundabout','Station','Stop','Traffic_Calming','Traffic_Signal','Turning_Loop']].value_counts().reset_index()
+
+    def makename(row):
+        vals = ['Amenity','Bump','Crossing','Give_Way','Junction','No_Exit','Railway','Roundabout','Station','Stop','Traffic_Calming','Traffic_Signal','Turning_Loop']
+        out = ""
+        for i,v in zip(row,vals):
+            if i:
+                if out != "":
+                    out += " and "+ v
+                else:
+                    out+= v
+        if out == "":
+            return "Nothing"
+        else:
+            return out
+    
+    def addlabels(x,y):
+        for i in range(len(x)):
+            loc = y[i]
+            if i == 0:
+                loc = loc //2
+            plt.text(i, loc, x[i] + f" ({y[i]})",rotation = 90,ha = 'center',va='bottom')
+    common["Name"] = common.apply(makename,axis=1)
+    common = common.nlargest(10, 'count')
+    fig, ax = plt.subplots()
+    #plt.xticks(rotation=90)
+    ax.set_xticklabels([])
+    plt.title('10 most common elements near a crash February 2016 to Dec 2020')
+    addlabels(common["Name"], common['count'])
+    ax.bar(common["Name"], common['count'])#, label=bar_labels, color=bar_colors
+    plt.savefig('situations.jpg', dpi=600)
+    #plt.bar(courses, values, color ='maroon', width = 0.4)
+    
+    #Interactive Graphs
+    #TODO probably better to make this a regular graph 
+    #would be nice to take the ones below 5% and plot them on a different pie, cuz its so small, while unifying them in the bigger pie
+    temp = df['Visibility(mi)'].value_counts()
+    fig = px.pie(temp, values='count', names=temp.index, title='Percentage of Accidents per Visibility')
+    fig.show()
+    #temp2 = temp[temp.index != 10]
+
+    fig = px.violin(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
+    fig.update_traces(marker_color='green')
+    fig.show()
+    
+    #Our data has 5 fundemental catagories of information about crashes, our whole project
+    #is about showing how these 4 different factors contribute to the outcomes of a crash
+    #when = ['Start_Time','Sunrise_Sunset'] #overall hour plot, per state hour plot
+    #where = ['Start_Lat','Start_Lat','State'] #states graph, and united states map DONE
+    #weather = ['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)','Visibility(mi)','Wind_Speed(mph)','Precipitation(in)','Weather_Condition'] #visibility interactive graph
+    #road_elements = ['Amenity','Bump','Crossing','Give_Way','Junction','No_Exit','Railway','Roundabout','Station','Stop','Traffic_Calming','Traffic_Signal','Turning_Loop'] #graph showing 10 most common road elements
+    #-------------------------------------------------------#
+    #outcomes = ['Distance(mi)','Severity','End_Time','Start_Time'] #End_Time-Start_Time = Duration, Data existing at all means it was crash
+    
+
+    #just a graph of accidents over time
+
+    #---dataorg
+    #"2019-06-12 10:10:56"[0:19] --> "2019-06-12 10:10:56"
+    #"2022-12-03 23:37:14.000000000" --> "2022-12-03 23:37:14"
+    df["Start_Time"] = df["Start_Time"].apply(lambda x : str(str(x)[0:19]))
+    df["Start_Time"] = pd.to_datetime(df['Start_Time']) #same as csv parse dates
+    #df['Start_Time'].dt.hour is 0-23, we want to convert to am pm, but its easier to do it in graphing
+    hourly_counts = df.groupby(df['Start_Time'].dt.hour).size() #or .count but pretty sure its the same
+    #end
+
+    fig, ax = plt.subplots()
+    hourly_counts.plot(kind='bar', figsize=(10, 6))
+    plt.xlabel('Hour of the day')
+    plt.ylabel('Count')
+    plt.title('Crash Occurrence Distribution by Hour (Local Time) from February 2016 to Dec 2020') #really annoying name to come up with
+    plt.xticks(range(24), [f"{12 if h == 0 else h if h <= 12 else h - 12}:00 {'AM' if h < 12 else 'PM'}" for h in range(24)], rotation=45,ha='right')
+    plt.grid(True)
+    plt.savefig('whenaccidents.jpg', dpi=600)
+    
+    
+    #when accidents most common per state, hourwise
+
+    #---dataorg
+    temp = df.loc[:,['State','Start_Time']]
+    temp["Hour"] = df['Start_Time'].dt.hour
+    temp = temp.groupby('State')['Hour'].value_counts().reset_index()
+    print(temp)
+    
+    max_indices = temp.groupby('State')['count'].idxmax()
+    temp = temp.loc[max_indices, :]
+    print("now we need to get")
+    print(temp)
+    
+    
+    temp.rename(columns={'State': 'Abbriv'}, inplace=True)
+    #TODO fix reading here instead of elsewhere, and the other time i did this
+    df2= pd.read_csv("states.csv")
+    df2 = df2.merge(temp, left_on='Abbreviation', right_on='Abbriv',how="left")
+    country2 = country.merge(df2, left_on='NAME', right_on='State',how="left")
+    country2["Hour"] = country2["Hour"].apply(lambda h : f"{12 if int(h) == 0 else int(h) if int(h) <= 12 else int(h) - 12}:00 {'AM' if int(h) < 12 else 'PM'}")
+    #end
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    plt.title('Time of Day Most Accidents Happen per State (Local Time)')
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    ax.axis('off')
+    country2.plot(categorical = True,column = 'Hour',ax=ax,legend=True,legend_kwds={'bbox_to_anchor': (1, 0.4)}, cmap='viridis')
+    plt.savefig('whenaccidents_state.jpg', dpi=600)
+
+    plt.close()
     print("End")
