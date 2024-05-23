@@ -247,9 +247,9 @@ def makeGraphs(df,country,highgdf):
         count = (df == True).sum()
         plt.figure(figsize=(10, 6))
         count.plot(kind='bar')
-        plt.xlabel('Column Names')
-        plt.ylabel('Number of "True" Strings')
-        plt.title('Number of "True" Strings per Column')
+        plt.xlabel('Types of Road')
+        plt.ylabel('Number of Crashes')
+        plt.title('Road Types Compared With Crashes')
         plt.xticks(rotation=45)
         plt.savefig("roadtypes.jpg")
         
