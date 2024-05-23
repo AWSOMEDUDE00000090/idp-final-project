@@ -151,6 +151,8 @@ def makeGraphs(df,country,highgdf):
     fig.update_traces(marker_color='green')
     fig.show()
     
+    #TODO I have only made graphs exploring these elements with the idea of the existance of their data showing crashing, i haven't looked into their effect on severity, duration, or distance
+    
     #Our data has 5 fundemental catagories of information about crashes, our whole project
     #is about showing how these 4 different factors contribute to the outcomes of a crash
     #when = ['Start_Time','Sunrise_Sunset'] #overall hour plot, per state hour plot
@@ -212,7 +214,7 @@ def makeGraphs(df,country,highgdf):
 
     #weather = ['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)','Visibility(mi)','Wind_Speed(mph)','Precipitation(in)','Weather_Condition']
     #['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)','Visibility(mi)','Wind_Speed(mph)','Precipitation(in)']
-    #temp
+    #TODO didn't make graph for weather condition yet.
     matplotlib.use('Agg') #required to not run out of memory
     def scattergraph(df,x,xlabel="",ylabel="# of crashes",title="",filename="idk.jpg",outliers_val=-1,grid=True):
         if xlabel == "":
