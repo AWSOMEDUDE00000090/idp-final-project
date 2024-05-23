@@ -144,12 +144,12 @@ def makeGraphs(df,country,highgdf):
     #would be nice to take the ones below 5% and plot them on a different pie, cuz its so small, while unifying them in the bigger pie
     temp = df['Visibility(mi)'].value_counts()
     fig = px.pie(temp, values='count', names=temp.index, title='Percentage of Accidents per Visibility')
-    fig.show()
+    #TODO uncomment fig.show()
     #temp2 = temp[temp.index != 10]
 
     fig = px.violin(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
     fig.update_traces(marker_color='green')
-    fig.show()
+    #TODO uncomment fig.show()
     
     #TODO I have only made graphs exploring these elements with the idea of the existance of their data showing crashing, i haven't looked into their effect on severity, duration, or distance
     
@@ -235,6 +235,30 @@ def makeGraphs(df,country,highgdf):
         plt.savefig(filename, dpi=600)
         plt.close(fig)
 
+    def severitygraph(df,x,xlabel="",ylabel="# of crashes",title="",filename="idk.jpg",outliers_val=-1,grid=True):
+        if xlabel == "":
+            xlabel = x
+        temp = df[x].value_counts().reset_index()
+        severity = df[["Severity", x]]
+        for i in range(1,5):
+            fig, ax = plt.subplots()
+            temp = severity[severity[("Severity"== i)]]
+            ax.plot(temp["x"], temp["Severity"])
+            plt.grid(grid)
+            ax2 = ax.twinx()
+            ax2.set_xlabel(xlabel)
+            plt.ylabel(ylabel)
+            plt.title(title)
+            ax2.scatter(temp[x],temp["count"])
+            if outliers_val != -1:
+                outliers = [(i, v) for i, v in zip(temp[x], temp["count"]) if v >= outliers_val]
+                outliertext = []
+                for x, y in outliers:
+                    outliertext.append(plt.annotate(f'({x}, {y})', xy=(x, y)))
+                adjust_text(outliertext, arrowprops=dict(arrowstyle='->', color='red'))
+            plt.savefig(filename + str(i), dpi=600)
+            plt.close(fig)
+       
     #can be used to look for connections
     scattergraph(df,'Temperature(F)',title='# of crashes against Temperature',filename='temperture.jpg',outliers_val=11000)
     scattergraph(df,'Wind_Chill(F)',title='# of crashes against Wind Chill',filename='windchill.jpg',outliers_val=7900)
@@ -243,6 +267,14 @@ def makeGraphs(df,country,highgdf):
     scattergraph(df,'Visibility(mi)',title='# of crashes against Visibility',filename='visibility.jpg',outliers_val=25000)
     scattergraph(df,'Wind_Speed(mph)',title='# of crashes against Wind Speed',filename='windspeed.jpg',outliers_val=15000)
     scattergraph(df,'Precipitation(in)',title='# of crashes against Precipitation',filename='precipitation.jpg',outliers_val=50000)
+
+    severitygraph(df,'Temperature(F)',title='# of crashes against Temperature',filename='temperture.jpg',outliers_val=11000)
+    severity = df[["Severity", "Temperature(F)"]]
+    for i in range(1,5):
+        temp = severity[severity["Severity"== i]]
+        plt.plot(temp["x"], temp["Severity"])
+        plt.savefig("test.jpg")
+
 
     def road_types_bar(df):
         df = df.loc[:, "Bump":"Tuning_Loop"]
@@ -255,7 +287,7 @@ def makeGraphs(df,country,highgdf):
         plt.xticks(rotation=45)
         plt.savefig("roadtypes.jpg")
         
-    road_types_bar(df)
+    # road_types_bar(df)
         
     plt.close()
     print("End")
