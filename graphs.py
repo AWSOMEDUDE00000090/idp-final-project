@@ -1,6 +1,8 @@
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 import geopandas as gpd
+from adjustText import adjust_text
 #import manim doesn't work we are using plotly lmao
 import plotly as plo
 import plotly.graph_objects as go
@@ -186,12 +188,9 @@ def makeGraphs(df,country,highgdf):
     temp = df.loc[:,['State','Start_Time']]
     temp["Hour"] = df['Start_Time'].dt.hour
     temp = temp.groupby('State')['Hour'].value_counts().reset_index()
-    print(temp)
     
     max_indices = temp.groupby('State')['count'].idxmax()
     temp = temp.loc[max_indices, :]
-    print("now we need to get")
-    print(temp)
     
     
     temp.rename(columns={'State': 'Abbriv'}, inplace=True)
@@ -209,6 +208,39 @@ def makeGraphs(df,country,highgdf):
     ax.axis('off')
     country2.plot(categorical = True,column = 'Hour',ax=ax,legend=True,legend_kwds={'bbox_to_anchor': (1, 0.4)}, cmap='viridis')
     plt.savefig('whenaccidents_state.jpg', dpi=600)
+
+
+    #weather = ['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)','Visibility(mi)','Wind_Speed(mph)','Precipitation(in)','Weather_Condition']
+    #['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)','Visibility(mi)','Wind_Speed(mph)','Precipitation(in)']
+    #temp
+    matplotlib.use('Agg') #required to not run out of memory
+    def scattergraph(df,x,xlabel="",ylabel="# of crashes",title="",filename="idk.jpg",outliers_val=-1,grid=True):
+        if xlabel == "":
+            xlabel = x
+        temp = df[x].value_counts().reset_index()
+        fig, ax = plt.subplots()
+        plt.grid(grid)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.title(title)
+        plt.scatter(temp[x],temp["count"])
+        if outliers_val != -1:
+            outliers = [(i, v) for i, v in zip(temp[x], temp["count"]) if v >= outliers_val]
+            outliertext = []
+            for x, y in outliers:
+                outliertext.append(plt.annotate(f'({x}, {y})', xy=(x, y)))
+            adjust_text(outliertext, arrowprops=dict(arrowstyle='->', color='red'))
+        plt.savefig(filename, dpi=600)
+        plt.close(fig)
+
+    #can be used to look for connections
+    scattergraph(df,'Temperature(F)',title='# of crashes against Temperature',filename='temperture.jpg',outliers_val=11000)
+    scattergraph(df,'Wind_Chill(F)',title='# of crashes against Wind Chill',filename='windchill.jpg',outliers_val=7900)
+    scattergraph(df,'Humidity(%)',title='# of crashes against Humidity',filename='humidity.jpg',outliers_val=10000)
+    scattergraph(df,'Pressure(in)',title='# of crashes against Pressure',filename='pressure.jpg',outliers_val=7500)
+    scattergraph(df,'Visibility(mi)',title='# of crashes against Visibility',filename='visibility.jpg',outliers_val=25000)
+    scattergraph(df,'Wind_Speed(mph)',title='# of crashes against Wind Speed',filename='windspeed.jpg',outliers_val=15000)
+    scattergraph(df,'Precipitation(in)',title='# of crashes against Precipitation',filename='precipitation.jpg',outliers_val=50000)
 
     plt.close()
     print("End")
