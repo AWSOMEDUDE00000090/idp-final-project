@@ -129,9 +129,6 @@ def makeGraphs(df,country,highgdf):
             if i == 0:
                 loc = loc //2
             plt.text(i, loc, x[i] + f" ({y[i]})",rotation = 90,ha = 'center',va='bottom')
-
-    #i did a little clever find and replace, but this sucks to look at
-    #,common['Bump'],common['Crossing'],common['Give_Way'],common['Junction'],common['No_Exit'],common['Railway'],common['Roundabout'],common['Station'],common['Stop'],common['Traffic_Calming'],common['Traffic_Signal'],common['Turning_Loop']
     common["Name"] = common.apply(makename,axis=1)
     print(common.head())
     common = common.nlargest(10, 'count')
@@ -144,31 +141,7 @@ def makeGraphs(df,country,highgdf):
     plt.savefig('situations.jpg', dpi=600)
     #plt.bar(courses, values, color ='maroon', width = 0.4)
     
-
-    '''
-    cmap vals: 'Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', 'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r', 'Grays', 
-    'Greens', 'Greens_r', 'Greys', 'Greys_r', 'OrRd', 'OrRd_r', 'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r', 'Paired', 'Paired_r', 'Pastel1', 'Pastel1_r', 'Pastel2', 'Pastel2_r', 'PiYG',
-    'PiYG_r', 'PuBu', 'PuBuGn', 'PuBuGn_r', 'PuBu_r', 'PuOr', 'PuOr_r', 'PuRd', 'PuRd_r', 'Purples', 'Purples_r', 'RdBu', 'RdBu_r', 'RdGy', 'RdGy_r', 'RdPu', 'RdPu_r', 'RdYlBu',
-    'RdYlBu_r', 'RdYlGn', 'RdYlGn_r', 'Reds', 'Reds_r', 'Set1', 'Set1_r', 'Set2', 'Set2_r', 'Set3', 'Set3_r', 'Spectral', 'Spectral_r', 'Wistia', 'Wistia_r', 'YlGn', 'YlGnBu',
-    'YlGnBu_r', 'YlGn_r', 'YlOrBr', 'YlOrBr_r', 'YlOrRd', 'YlOrRd_r', 'afmhot', 'afmhot_r', 'autumn', 'autumn_r', 'binary', 'binary_r', 'bone', 'bone_r', 'brg', 'brg_r', 'bwr',
-    'bwr_r', 'cividis', 'cividis_r', 'cool', 'cool_r', 'coolwarm', 'coolwarm_r', 'copper', 'copper_r', 'cubehelix', 'cubehelix_r', 'flag', 'flag_r', 'gist_earth', 'gist_earth_r',
-    'gist_gray', 'gist_gray_r', 'gist_grey', 'gist_heat', 'gist_heat_r', 'gist_ncar', 'gist_ncar_r', 'gist_rainbow', 'gist_rainbow_r', 'gist_stern', 'gist_stern_r', 'gist_yarg',
-    'gist_yarg_r', 'gist_yerg', 'gnuplot', 'gnuplot2', 'gnuplot2_r', 'gnuplot_r', 'gray', 'gray_r', 'grey', 'hot', 'hot_r', 'hsv', 'hsv_r', 'inferno', 'inferno_r', 'jet', 'jet_r',
-    'magma', 'magma_r', 'nipy_spectral', 'nipy_spectral_r', 'ocean', 'ocean_r', 'pink', 'pink_r', 'plasma', 'plasma_r', 'prism', 'prism_r', 'rainbow', 'rainbow_r', 'seismic', 
-    'seismic_r', 'spring', 'spring_r', 'summer', 'summer_r', 'tab10', 'tab10_r', 'tab20', 'tab20_r', 'tab20b', 'tab20b_r', 'tab20c', 'tab20c_r', 'terrain', 'terrain_r', 'turbo', 
-    'turbo_r', 'twilight', 'twilight_r', 'twilight_shifted', 'twilight_shifted_r', 'viridis', 'viridis_r', 'winter', 'winter_r'
-    '''
-    #passing missing_kwds one can specify the style and label of features containing None or NaN.
-    '''
-    missing_kwds={
-            "color": "lightgrey",
-            "edgecolor": "red",
-            "hatch": "///",
-            "label": "Missing values",
-        },
-    '''
-    #temp = df.groupby('Severity')['Visibility(mi)'].unique()
-
+    #Interactive Graphs
     #would be nice to take the ones below 5% and plot them on a different pie, cuz its so small, while unifying them in the bigger pie
     temp = df['Visibility(mi)'].value_counts()
     print(temp.head())
@@ -180,124 +153,18 @@ def makeGraphs(df,country,highgdf):
     fig.update_traces(marker_color='green')
     fig.show()
 
-    '''
-    # Create figure
-    fig = go.Figure()
-
-    # Add surface trace
-    fig.add_trace(go.Heatmap(z=df.values.tolist(), colorscale="Viridis"))
-
-    # Update plot sizing
-    fig.update_layout(
-        width=800,
-        height=900,
-        autosize=False,
-        margin=dict(t=100, b=0, l=0, r=0),
-    )
-
-    # Update 3D scene options
-    fig.update_scenes(
-        aspectratio=dict(x=1, y=1, z=0.7),
-        aspectmode="manual"
-    )
-
-    # Add dropdowns
-    button_layer_1_height = 1.08
-    fig.update_layout(
-        updatemenus=[
-            dict(
-                buttons=list([
-                    dict(
-                        args=["colorscale", "Viridis"],
-                        label="Viridis",
-                        method="restyle"
-                    ),
-                    dict(
-                        args=["colorscale", "Cividis"],
-                        label="Cividis",
-                        method="restyle"
-                    ),
-                    dict(
-                        args=["colorscale", "Blues"],
-                        label="Blues",
-                        method="restyle"
-                    ),
-                    dict(
-                        args=["colorscale", "Greens"],
-                        label="Greens",
-                        method="restyle"
-                    ),
-                ]),
-                direction="down",
-                pad={"r": 10, "t": 10},
-                showactive=True,
-                x=0.1,
-                xanchor="left",
-                y=button_layer_1_height,
-                yanchor="top"
-            ),
-            dict(
-                buttons=list([
-                    dict(
-                        args=["reversescale", False],
-                        label="False",
-                        method="restyle"
-                    ),
-                    dict(
-                        args=["reversescale", True],
-                        label="True",
-                        method="restyle"
-                    )
-                ]),
-                direction="down",
-                pad={"r": 10, "t": 10},
-                showactive=True,
-                x=0.37,
-                xanchor="left",
-                y=button_layer_1_height,
-                yanchor="top"
-            ),
-            dict(
-                buttons=list([
-                    dict(
-                        args=[{"contours.showlines": False, "type": "contour"}],
-                        label="Hide lines",
-                        method="restyle"
-                    ),
-                    dict(
-                        args=[{"contours.showlines": True, "type": "contour"}],
-                        label="Show lines",
-                        method="restyle"
-                    ),
-                ]),
-                direction="down",
-                pad={"r": 10, "t": 10},
-                showactive=True,
-                x=0.58,
-                xanchor="left",
-                y=button_layer_1_height,
-                yanchor="top"
-            ),
-        ]
-    )
-
-    fig.update_layout(
-        annotations=[
-            dict(text="colorscale", x=0, xref="paper", y=1.06, yref="paper",
-                                align="left", showarrow=False),
-            dict(text="Reverse<br>Colorscale", x=0.25, xref="paper", y=1.07,
-                                yref="paper", showarrow=False),
-            dict(text="Lines", x=0.54, xref="paper", y=1.06, yref="paper",
-                                showarrow=False)
-        ])
-
-    fig.show()
-    '''
-    #highway vs city stuff, where we compare which one is more likely to get in accident
-    #https://stackoverflow.com/questions/69082127/plot-heatmap-kdeplot-with-geopandas
-    #https://altair-viz.github.io/gallery/radial_chart.html
-    #bts.gov
-    #print(highgdf.head())
+    #most dangerous times to drive per state
     
+    #Our data has 5 fundemental catagories of information about crashes, our whole project
+    #is about showing how these 4 different factors contribute to the outcomes of a crash
+    #when = ['Start_Time','Sunrise_Sunset']
+    #where = ['Start_Lat','Start_Lat','State'] #states graph, and united states map DONE
+    #weather = ['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)','Visibility(mi)','Wind_Speed(mph)','Precipitation(in)','Weather_Condition'] #visibility interactive graph
+    #road_elements = ['Amenity','Bump','Crossing','Give_Way','Junction','No_Exit','Railway','Roundabout','Station','Stop','Traffic_Calming','Traffic_Signal','Turning_Loop'] #graph showing 10 most common road elements
+    #-------------------------------------------------------#
+    #outcomes = ['Distance(mi)','Severity','End_Time','Start_Time'] #End_Time-Start_Time = Duration, Data existing at all means it was crash
+    
+
+
     plt.close()
     print("End")
