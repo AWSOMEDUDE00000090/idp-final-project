@@ -14,6 +14,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix,mean_squared_error
 import pandas as pd
 import pickle #for saving model on pc
+import matplotlib.pyplot as plt
+import numpy as np
 
 #https://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html
 
@@ -128,6 +130,18 @@ def show_importance(model3, features):
     # summarize feature importance
     for index, feat_importance in enumerate(importance):
         print(f'Feature: {features.columns[index]}, Importance: {feat_importance:.2%}')
+    fig, ax = plt.subplots() 
+    width = 0.4 # the width of the bars 
+    ind = np.arange(len(importance)) # the x locations for the groups
+    ax.barh(ind, importance, width, color='green')
+    ax.set_yticks(ind+width/10)
+    ax.set_yticklabels(features.columns, minor=False)
+    plt.title('Feature importance in RandomForest Classifier')
+    plt.xlabel('Relative importance')
+    plt.ylabel('feature') 
+    plt.figure(figsize=(5,5))
+    fig.set_size_inches(6.5, 4.5, forward=True)
+    plt.savefig('mlfeatureimportance.jpg', dpi=600)
 
 #Our data has 5 fundemental catagories of information about crashes, our whole project
 #is about showing how these 4 different factors contribute to the outcomes of a crash
