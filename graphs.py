@@ -10,6 +10,7 @@ import plotly.express as px
 #cool idea, https://stackoverflow.com/questions/6687660/keep-persistent-variables-in-memory-between-runs-of-python-script we gonna make wrapper for
 #data, and it can rerun new script
 import mach_learning as ml
+import os
 
 #https://www.census.gov/data/tables/time-series/demo/popest/2020s-state-total.html
 #Suggested Citation:				
@@ -17,20 +18,27 @@ import mach_learning as ml
 #Source: U.S. Census Bureau, Population Division				
 #Release Date: December 2022				
 def getgdf():
-    df = pd.concat(
-    map(pd.read_csv, ['data\output_0.csv', 'data\output_1.csv', 'data\output_2.csv', 'data\output_3.csv', 'data\output_4.csv', 'data\output_5.csv', 'data\output_6.csv', 'data\output_7.csv'])
-    )
+    # List of file names directly within the 'data' directory
+    file_names = [f'data/output_{i}.csv' for i in range(8)]
+    
+    # Create relative file paths
+    file_paths = [os.path.join(file_name) for file_name in file_names]
+    
+    # Read and concatenate the CSV files
+    df = pd.concat(map(pd.read_csv, file_paths))
+    
     return df
 
 def getcountry():
-    country = gpd.read_file("data\gz_2010_us_040_00_5m.json")
+    file_path = os.path.join('data', 'gz_2010_us_040_00_5m.json')
+    country = gpd.read_file(file_path)
     return country
 
-def gethighgdf():
-    highgdf = pd.concat(
-        map(gpd.read_file, ['data\\National_Highway_System_(NHS)_1.csv', 'data\\National_Highway_System_(NHS)_2.csv', 'data\\National_Highway_System_(NHS)_3.csv', 'data\\National_Highway_System_(NHS)_4.csv'])
-        )
-    return highgdf
+# def gethighgdf():
+#     highgdf = pd.concat(
+#         map(gpd.read_file, ['data\\National_Highway_System_(NHS)_1.csv', 'data\\National_Highway_System_(NHS)_2.csv', 'data\\National_Highway_System_(NHS)_3.csv', 'data\\National_Highway_System_(NHS)_4.csv'])
+#         )
+#     return highgdf
 
 def makeGraphs(df,country,highgdf):
     #machine learning test
@@ -135,6 +143,7 @@ def makeGraphs(df,country,highgdf):
     ax.set_xticklabels([])
     plt.title('10 most common elements near a crash February 2016 to Dec 2020')
     addlabels(common["Name"], common['count'])
+    plt.ylabel('Crash Count')
     ax.bar(common["Name"], common['count'])#, label=bar_labels, color=bar_colors
     plt.savefig('situations.jpg', dpi=600)
     #plt.bar(courses, values, color ='maroon', width = 0.4)
@@ -183,7 +192,23 @@ def makeGraphs(df,country,highgdf):
     plt.grid(True)
     plt.savefig('whenaccidents.jpg', dpi=600)
     
-    
+    #monthly version
+    df["Start_Time"] = df["Start_Time"].apply(lambda x : str(str(x)[0:19]))
+    df["Start_Time"] = pd.to_datetime(df['Start_Time']) #same as csv parse dates
+    #df['Start_Time'].dt.hour is 0-23, we want to convert to am pm, but its easier to do it in graphing
+    monthly_counts = df.groupby(df['Start_Time'].dt.month).size() #or .count but pretty sure its the same
+    #end
+
+    fig, ax = plt.subplots()
+    monthly_counts.plot(kind='bar', figsize=(10, 6))
+    plt.xlabel('Month')
+    plt.ylabel('Count')
+    plt.title('Crash Occurrence Distribution by Month from February 2016 to Dec 2020') #really annoying name to come up with
+    months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    plt.xticks(range(12), months, rotation=45,ha='right')
+    plt.grid(True)
+    plt.savefig('whenaccidents_month.jpg', dpi=600)
+
     #when accidents most common per state, hourwise
 
     #---dataorg
@@ -210,6 +235,35 @@ def makeGraphs(df,country,highgdf):
     ax.axis('off')
     country2.plot(categorical = True,column = 'Hour',ax=ax,legend=True,legend_kwds={'bbox_to_anchor': (1, 0.4)}, cmap='viridis')
     plt.savefig('whenaccidents_state.jpg', dpi=600)
+
+
+    #when accidents most common per state, monthly
+
+    #---dataorg
+    temp = df.loc[:,['State','Start_Time']]
+    temp["Month"] = df['Start_Time'].dt.month
+    temp = temp.groupby('State')['Month'].value_counts().reset_index()
+    
+    max_indices = temp.groupby('State')['count'].idxmax()
+    temp = temp.loc[max_indices, :]
+    
+    
+    temp.rename(columns={'State': 'Abbriv'}, inplace=True)
+    #TODO fix reading here instead of elsewhere, and the other time i did this
+    df2= pd.read_csv("states.csv")
+    df2 = df2.merge(temp, left_on='Abbreviation', right_on='Abbriv',how="left")
+    country2 = country.merge(df2, left_on='NAME', right_on='State',how="left")
+    months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] #also defined
+    country2["Month"] = country2["Month"].apply(lambda h : f"{months[int(h)-1]}")
+    #end
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    plt.title('Month with Most Accidents Happen per State')
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    ax.axis('off')
+    country2.plot(categorical = True,column = 'Month',ax=ax,legend=True,legend_kwds={'bbox_to_anchor': (1, 0.4)}, cmap='viridis')
+    plt.savefig('whenaccidents_state_month.jpg', dpi=600)
 
 
     #weather = ['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)','Visibility(mi)','Wind_Speed(mph)','Precipitation(in)','Weather_Condition']
@@ -287,7 +341,7 @@ def makeGraphs(df,country,highgdf):
         plt.xticks(rotation=45)
         plt.savefig("roadtypes.jpg")
         
-    # road_types_bar(df)
+    ## road_types_bar(df)
         
     plt.close()
     print("End")
