@@ -143,6 +143,7 @@ def makeGraphs(df,country,highgdf):
     ax.set_xticklabels([])
     plt.title('10 most common elements near a crash February 2016 to Dec 2020')
     addlabels(common["Name"], common['count'])
+    plt.ylabel('Crash Count')
     ax.bar(common["Name"], common['count'])#, label=bar_labels, color=bar_colors
     plt.savefig('situations.jpg', dpi=600)
     #plt.bar(courses, values, color ='maroon', width = 0.4)
@@ -152,12 +153,12 @@ def makeGraphs(df,country,highgdf):
     #would be nice to take the ones below 5% and plot them on a different pie, cuz its so small, while unifying them in the bigger pie
     temp = df['Visibility(mi)'].value_counts()
     fig = px.pie(temp, values='count', names=temp.index, title='Percentage of Accidents per Visibility')
-    #TODO uncomment fig.show()
+    fig.show()
     #temp2 = temp[temp.index != 10]
 
     fig = px.violin(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
     fig.update_traces(marker_color='green')
-    #TODO uncomment fig.show()
+    fig.show()
     
     #TODO I have only made graphs exploring these elements with the idea of the existance of their data showing crashing, i haven't looked into their effect on severity, duration, or distance
     
