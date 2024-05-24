@@ -294,23 +294,21 @@ def makeGraphs(df,country,highgdf):
             xlabel = x
         temp = df[x].value_counts().reset_index()
         severity = df[["Severity", x]]
-        for i in range(1,5):
+        for i in ["blue", "red", "green", "yellow"]:
             fig, ax = plt.subplots()
-            temp = severity[severity[("Severity"== i)]]
-            ax.plot(temp["x"], temp["Severity"])
+            plt.plot(temp[x], temp["count"], color = i)
             plt.grid(grid)
-            ax2 = ax.twinx()
-            ax2.set_xlabel(xlabel)
             plt.ylabel(ylabel)
             plt.title(title)
-            ax2.scatter(temp[x],temp["count"])
+            plt.scatter(temp[x],temp["count"])
             if outliers_val != -1:
                 outliers = [(i, v) for i, v in zip(temp[x], temp["count"]) if v >= outliers_val]
                 outliertext = []
                 for x, y in outliers:
                     outliertext.append(plt.annotate(f'({x}, {y})', xy=(x, y)))
                 adjust_text(outliertext, arrowprops=dict(arrowstyle='->', color='red'))
-            plt.savefig(filename + str(i), dpi=600)
+            filename = [i, filename]
+            plt.savefig("_".join(filename), dpi=600)
             plt.close(fig)
        
     #can be used to look for connections
