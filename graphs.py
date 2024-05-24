@@ -10,6 +10,7 @@ import plotly.express as px
 #cool idea, https://stackoverflow.com/questions/6687660/keep-persistent-variables-in-memory-between-runs-of-python-script we gonna make wrapper for
 #data, and it can rerun new script
 import mach_learning as ml
+import os
 
 #https://www.census.gov/data/tables/time-series/demo/popest/2020s-state-total.html
 #Suggested Citation:				
@@ -17,20 +18,27 @@ import mach_learning as ml
 #Source: U.S. Census Bureau, Population Division				
 #Release Date: December 2022				
 def getgdf():
-    df = pd.concat(
-    map(pd.read_csv, ['data\output_0.csv', 'data\output_1.csv', 'data\output_2.csv', 'data\output_3.csv', 'data\output_4.csv', 'data\output_5.csv', 'data\output_6.csv', 'data\output_7.csv'])
-    )
+    # List of file names directly within the 'data' directory
+    file_names = [f'data/output_{i}.csv' for i in range(8)]
+    
+    # Create relative file paths
+    file_paths = [os.path.join(file_name) for file_name in file_names]
+    
+    # Read and concatenate the CSV files
+    df = pd.concat(map(pd.read_csv, file_paths))
+    
     return df
 
 def getcountry():
-    country = gpd.read_file("data\gz_2010_us_040_00_5m.json")
+    file_path = os.path.join('data', 'gz_2010_us_040_00_5m.json')
+    country = gpd.read_file(file_path)
     return country
 
-def gethighgdf():
-    highgdf = pd.concat(
-        map(gpd.read_file, ['data\\National_Highway_System_(NHS)_1.csv', 'data\\National_Highway_System_(NHS)_2.csv', 'data\\National_Highway_System_(NHS)_3.csv', 'data\\National_Highway_System_(NHS)_4.csv'])
-        )
-    return highgdf
+# def gethighgdf():
+#     highgdf = pd.concat(
+#         map(gpd.read_file, ['data\\National_Highway_System_(NHS)_1.csv', 'data\\National_Highway_System_(NHS)_2.csv', 'data\\National_Highway_System_(NHS)_3.csv', 'data\\National_Highway_System_(NHS)_4.csv'])
+#         )
+#     return highgdf
 
 def makeGraphs(df,country,highgdf):
     #machine learning test
