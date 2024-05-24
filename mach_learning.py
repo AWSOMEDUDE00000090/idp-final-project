@@ -16,6 +16,7 @@ import pandas as pd
 import pickle #for saving model on pc
 import matplotlib.pyplot as plt
 import numpy as np
+from adjustText import adjust_text
 
 #https://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html
 
@@ -128,20 +129,59 @@ def show_importance(model3, features):
     # get importance
     importance = model3.feature_importances_
     # summarize feature importance
+    feat = []
+    impor = []
+    feat2 = []
+    impor2 = []
+    total_poi = 0
+    total_weather = 0
+    total_state = 0
     for index, feat_importance in enumerate(importance):
         print(f'Feature: {features.columns[index]}, Importance: {feat_importance:.2%}')
-    fig, ax = plt.subplots() 
-    width = 0.4 # the width of the bars 
-    ind = np.arange(len(importance)) # the x locations for the groups
-    ax.barh(ind, importance, width, color='green')
-    ax.set_yticks(ind+width/10)
-    ax.set_yticklabels(features.columns, minor=False)
-    plt.title('Feature importance in RandomForest Classifier')
-    plt.xlabel('Relative importance')
-    plt.ylabel('feature') 
-    plt.figure(figsize=(5,5))
-    fig.set_size_inches(6.5, 4.5, forward=True)
+        
+        if feat_importance < 0.02:
+            feat2.append(features.columns[index])
+            impor2.append(feat_importance)
+            if features.columns[index].startswith("Weather"):
+                total_weather += feat_importance
+            elif features.columns[index].startswith("State"):
+                total_state += feat_importance
+            else:
+                total_poi += feat_importance
+        else:
+            feat.append(features.columns[index])
+            impor.append(feat_importance)
+    feat.append("Road Element")
+    impor.append(total_poi)
+    feat.append("Weather")
+    impor.append(total_weather)
+    feat.append("State")
+    impor.append(total_state)
+    fig, ax = plt.subplots()
+    ax.pie(impor, labels=feat, autopct='%1.1f%%')#,textprops={'fontsize': 5}
+    plt.title('Feature importance in RFC, used to predict Severity of Accidents')
     plt.savefig('mlfeatureimportance.jpg', dpi=600)
+    plt.close(fig)
+
+    '''
+    #the <2% graph is inconsequential and not important
+    #I tried piechart, and bargraph before this
+    fig, ax = plt.subplots()
+    plt.xlabel("Importance")
+    plt.ylabel("Features")
+    plt.title("Feature <2% importance in RandomForest Classifier")
+    plt.scatter(impor2,range(len(feat2)))
+    outliers = [(i, v) for i, v in zip(impor2,range(len(feat2)))]
+    outliertext = []
+    for x, y in outliers:
+        outliertext.append(plt.annotate(f'{feat2[y]}: {x:.1e}%', xy=(x, y)))
+    adjust_text(outliertext, arrowprops=dict(arrowstyle='->', color='red'))
+    #ax.bar(range(len(impor2)),impor2, label=feat2)
+    plt.title('Feature <2% importance in RandomForest Classifier')
+    plt.savefig('mlfeatureimportance_small.jpg', dpi=600)
+    plt.close(fig)
+    '''
+    
 
 #Our data has 5 fundemental catagories of information about crashes, our whole project
 #is about showing how these 4 different factors contribute to the outcomes of a crash
@@ -184,6 +224,7 @@ def prep_data(df):
 if __name__ == "__main__":
     model = None
     model2 = None
+    #generate new model using True, otherwise leave false to read stored model
     newmodel = False
     newmodel2 = False
     feat,label = prep_data(pd.concat(
