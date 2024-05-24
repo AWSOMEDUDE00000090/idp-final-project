@@ -119,6 +119,47 @@ def prep_data(df):
     print("finished prepping ml data")
     return df, labels
 
+def create_all_features(df):
+    '''
+    ['Severity','Start_Time','Sunrise_Sunset','Start_Lat','Start_Lng',
+    'State','Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)',
+    'Visibility(mi)','Wind_Speed(mph)','Precipitation(in)','Weather_Condition',
+    'Amenity','Bump','Crossing','Give_Way','Junction','No_Exit','Railway','Roundabout',
+    'Station','Stop','Traffic_Calming','Traffic_Signal','Turning_Loop']
+    '''
+    #find ranges by doing max and min on all of the columns
+    bool_cols = df.select_dtypes(include=[bool]).columns
+    num_cols = pd.DataFrame()
+    num_cols["Name"] = df.select_dtypes(include=[int, float]).columns
+
+    boolean_variations = df.loc[:,bool_cols].unique()
+    print(boolean_variations)
+
+    num_cols["low"] = num_cols["name"]
+    # lets create a set of data to make predictions on
+    # get all ages for each sport and gender
+    sports = df['sport'].unique()
+    ages = [ age for age in range(18, 101) ]
+    genders = [False] * (len(ages)*len(sports))
+    gender_m = [True] * len(genders)
+    genders.extend(gender_m)
+    # replicate ages to be for all sports (multiply by number of sports)
+    # then, double itself to get both genders
+    all_ages = []
+    for i in range(len(sports)):
+        all_ages.extend(ages)
+    all_ages.extend(all_ages)
+    # replicate sports to be for all ages (multiply by number of ages)
+    # then, double itself to get both genders
+    all_sports = []
+    for i in range(len(ages)):
+        all_sports.extend(sports)
+    all_sports.extend(all_sports)
+
+    # create the dataframe structured like original features during training
+    df_features = pd.DataFrame({'male':genders, 'age':all_ages, 'sport':all_sports})
+    return df_features
+
 if __name__ == "__main__":
     model = None
     newmodel = False
