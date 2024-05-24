@@ -10,6 +10,7 @@ import plotly.express as px
 #cool idea, https://stackoverflow.com/questions/6687660/keep-persistent-variables-in-memory-between-runs-of-python-script we gonna make wrapper for
 #data, and it can rerun new script
 import mach_learning as ml
+import os
 
 #https://www.census.gov/data/tables/time-series/demo/popest/2020s-state-total.html
 #Suggested Citation:				
@@ -17,20 +18,27 @@ import mach_learning as ml
 #Source: U.S. Census Bureau, Population Division				
 #Release Date: December 2022				
 def getgdf():
-    df = pd.concat(
-    map(pd.read_csv, ['data\output_0.csv', 'data\output_1.csv', 'data\output_2.csv', 'data\output_3.csv', 'data\output_4.csv', 'data\output_5.csv', 'data\output_6.csv', 'data\output_7.csv'])
-    )
+    # List of file names directly within the 'data' directory
+    file_names = [f'data/output_{i}.csv' for i in range(8)]
+    
+    # Create relative file paths
+    file_paths = [os.path.join(file_name) for file_name in file_names]
+    
+    # Read and concatenate the CSV files
+    df = pd.concat(map(pd.read_csv, file_paths))
+    
     return df
 
 def getcountry():
-    country = gpd.read_file("data\gz_2010_us_040_00_5m.json")
+    file_path = os.path.join('data', 'gz_2010_us_040_00_5m.json')
+    country = gpd.read_file(file_path)
     return country
 
-def gethighgdf():
-    highgdf = pd.concat(
-        map(gpd.read_file, ['data\\National_Highway_System_(NHS)_1.csv', 'data\\National_Highway_System_(NHS)_2.csv', 'data\\National_Highway_System_(NHS)_3.csv', 'data\\National_Highway_System_(NHS)_4.csv'])
-        )
-    return highgdf
+# def gethighgdf():
+#     highgdf = pd.concat(
+#         map(gpd.read_file, ['data\\National_Highway_System_(NHS)_1.csv', 'data\\National_Highway_System_(NHS)_2.csv', 'data\\National_Highway_System_(NHS)_3.csv', 'data\\National_Highway_System_(NHS)_4.csv'])
+#         )
+#     return highgdf
 
 def makeGraphs(df,country,highgdf):
     #machine learning test
@@ -135,6 +143,7 @@ def makeGraphs(df,country,highgdf):
     ax.set_xticklabels([])
     plt.title('10 most common elements near a crash February 2016 to Dec 2020')
     addlabels(common["Name"], common['count'])
+    plt.ylabel('Crash Count')
     ax.bar(common["Name"], common['count'])#, label=bar_labels, color=bar_colors
     plt.savefig('situations.jpg', dpi=600)
     #plt.bar(courses, values, color ='maroon', width = 0.4)
@@ -280,6 +289,28 @@ def makeGraphs(df,country,highgdf):
         plt.savefig(filename, dpi=600)
         plt.close(fig)
 
+    def severitygraph(df,x,xlabel="",ylabel="# of crashes",title="",filename="idk.jpg",outliers_val=-1,grid=True):
+        if xlabel == "":
+            xlabel = x
+        temp = df[x].value_counts().reset_index()
+        severity = df[["Severity", x]]
+        for i in ["blue", "red", "green", "yellow"]:
+            fig, ax = plt.subplots()
+            plt.plot(temp[x], temp["count"], color = i)
+            plt.grid(grid)
+            plt.ylabel(ylabel)
+            plt.title(title)
+            plt.scatter(temp[x],temp["count"])
+            if outliers_val != -1:
+                outliers = [(i, v) for i, v in zip(temp[x], temp["count"]) if v >= outliers_val]
+                outliertext = []
+                for x, y in outliers:
+                    outliertext.append(plt.annotate(f'({x}, {y})', xy=(x, y)))
+                adjust_text(outliertext, arrowprops=dict(arrowstyle='->', color='red'))
+            filename = [i, filename]
+            plt.savefig("_".join(filename), dpi=600)
+            plt.close(fig)
+       
     #can be used to look for connections
     scattergraph(df,'Temperature(F)',title='# of crashes against Temperature',filename='temperture.jpg',outliers_val=11000)
     scattergraph(df,'Wind_Chill(F)',title='# of crashes against Wind Chill',filename='windchill.jpg',outliers_val=7900)
@@ -288,6 +319,14 @@ def makeGraphs(df,country,highgdf):
     scattergraph(df,'Visibility(mi)',title='# of crashes against Visibility',filename='visibility.jpg',outliers_val=25000)
     scattergraph(df,'Wind_Speed(mph)',title='# of crashes against Wind Speed',filename='windspeed.jpg',outliers_val=15000)
     scattergraph(df,'Precipitation(in)',title='# of crashes against Precipitation',filename='precipitation.jpg',outliers_val=50000)
+
+    severitygraph(df,'Temperature(F)',title='# of crashes against Temperature',filename='temperture.jpg',outliers_val=11000)
+    severity = df[["Severity", "Temperature(F)"]]
+    for i in range(1,5):
+        temp = severity[severity["Severity"== i]]
+        plt.plot(temp["x"], temp["Severity"])
+        plt.savefig("test.jpg")
+
 
     def road_types_bar(df):
         df = df.loc[:, "Bump":"Tuning_Loop"]
@@ -300,7 +339,7 @@ def makeGraphs(df,country,highgdf):
         plt.xticks(rotation=45)
         plt.savefig("roadtypes.jpg")
         
-    #road_types_bar(df)
+    ## road_types_bar(df)
         
     plt.close()
     print("End")
