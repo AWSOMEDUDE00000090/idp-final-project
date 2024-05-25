@@ -8,6 +8,7 @@ A successful ML model must be accompanied with several things:
 Plotting should be done in main.py.
 '''
 #from sklearn.linear_model import LinearRegression
+import time
 from sklearn.linear_model import SGDClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
@@ -17,6 +18,9 @@ import pickle #for saving model on pc
 import matplotlib.pyplot as plt
 import numpy as np
 from adjustText import adjust_text
+from sklearn.inspection import partial_dependence
+from sklearn.inspection import PartialDependenceDisplay
+
 
 #https://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html
 
@@ -42,7 +46,7 @@ def model_SGD(features, labels, test_size=0.3, validation_split = 0.5): #validat
     
     return model
 
-def model_RFC(features, labels, test_size=0.3, validation_split = 0.5): #validation split not required for regression
+def model_RFC(features, labels, test_size=0.3, validation_split = 0.5,model = None): #validation split not required for regression
     print("starting model training")
     # Split the data into training and testing sets
     train_f, test_f, train_l, test_l = train_test_split(features, labels, test_size=test_size)
@@ -52,9 +56,10 @@ def model_RFC(features, labels, test_size=0.3, validation_split = 0.5): #validat
 
     # Initialize the Linear Regression model & train it
     #loss = {'modified_huber', 'squared_hinge', 'log_loss', 'squared_error', 'huber', 'perceptron', 'epsilon_insensitive', 'squared_epsilon_insensitive', 'hinge'}
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    #sgd optimizaition for logistic regression
-    model.fit(train_f, train_l)
+    if model == None:
+        model = RandomForestClassifier(n_estimators=100, random_state=42) #also gradient boost tree, and validation set
+        #sgd optimizaition for logistic regression
+        model.fit(train_f, train_l)
 
     # Test the accuracy: Make predictions and show our MSE
     label_predictions = model.predict(test_f)
@@ -65,8 +70,50 @@ def model_RFC(features, labels, test_size=0.3, validation_split = 0.5): #validat
     #print(classification_report(test_f, label_predictions))
     #print("Confusion Matrix:")
     #print(confusion_matrix(test_f, label_predictions))
-
+    bool_cols = features.select_dtypes(include=[bool]).columns
+    num_cols = features.select_dtypes(include=[int, float]).columns
+    plot_ml_partial_dependence(model,train_f,num_cols,bool_cols)
     return model
+
+#https://scikit-learn.org/stable/auto_examples/inspection/plot_partial_dependence.html#way-partial-dependence-with-different-models
+#I tried writing my own in create_all_features explanation on why it didn't work is there
+def plot_ml_partial_dependence(model,X_train,features,categorical_data):
+    common_params = {
+        "subsample": 50,
+        "n_jobs": 2,
+        "grid_resolution": 20,
+        "random_state": 0,
+    }
+
+    print("Computing partial dependence plots...")
+    features_info = {
+        # features of interest
+        "features": features,
+        # type of partial dependence plot
+        "kind": "average",
+        # information regarding categorical features
+        "categorical_features": categorical_data,
+    }
+    tic = time.perf_counter()
+    _, ax = plt.subplots(ncols=3, nrows=4, figsize=(9, 8), constrained_layout=True)
+    display = PartialDependenceDisplay.from_estimator(
+        model,
+        X_train,
+        **features_info,
+        ax=ax,
+        **common_params,
+        target=1
+    )
+    print(f"done in {time.perf_counter() - tic:.3f}s")
+    _ = display.figure_.suptitle(
+        (
+            "Partial dependence of all numerical features for the car crash \n"
+            "dataset with an RandomForestClassifier targeting severity 4"
+        ),
+        fontsize=16,
+    )
+    plt.savefig('mlpartialdependency4.jpg', dpi=600)
+
 
 def model_SGD(features, labels, test_size=0.3, validation_split = 0.5): #validation split not required for regression
     print("starting model training")
@@ -219,11 +266,17 @@ def prep_data(df):
     df = pd.get_dummies(df,columns=["Weather_Condition"])
     #print(list(df.columns))
     print("finished prepping ml data")
-    return df, labels
+    return df, labels, df.columns
 
-def create_all_features(feat,label,model):
-    df = feat.merge(label,how = 'inner', right_index = True, left_index = True)#should be on index
-    print(df.columns)
+def create_all_features(df,label,model,featcols):
+    #this is the wrong approach, well kindof.
+    #without googling i made this method, and then afterwards found out
+    #its remarkably similar to how partial dependency graphs work
+    #now the cool thing is that with tree, you need to manipulate at least 2 variables to see any changes
+    #meaning this method wont get interesting results
+
+    #df = feat.merge(label,how = 'inner', right_index = True, left_index = True)#should be on index
+    print("create all features start")
     '''
     ['Severity','Start_Time','Sunrise_Sunset','Start_Lat','Start_Lng',
     'State','Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)',
@@ -237,12 +290,13 @@ def create_all_features(feat,label,model):
     num_cols["Name"] = df.select_dtypes(include=[int, float]).columns
     #TODO get constant averages for all values
     
-    print(bool_cols)
-    print(num_cols)
     num_cols['min'] = [df[i].min() for i in num_cols["Name"]]
     num_cols['max'] = [df[i].max() for i in num_cols["Name"]]
     num_cols['avg'] = [df[i].mean() for i in num_cols["Name"]] #location mean?
-    print(num_cols)
+
+    names = list(num_cols["Name"])
+
+    num_cols.set_index('Name', inplace=True)
 
     weather = list()
     states = list()
@@ -256,40 +310,56 @@ def create_all_features(feat,label,model):
             poi.append(bool_cols[i])
     #no need for bool cols anymore
 
-    for i in num_cols:
-        points = pd.Dataframe()
-        points["x"] = [((i/i["max"]) * 100) for i in range(i["min"],i["max"])] #all x
+    #what we want is columns like this
+    # a b c d e f g h     i
+    # 1 6 7 8 7 9 3 false false
+    # 2 6 7 8 7 9 3 false false
+    # 3 6 7 8 7 9 3 false false
+    # 4 6 7 8 7 9 3 false false
+    for i in names:
         final = pd.DataFrame()
-        for j in num_cols:
-            if j != i:
-                #final[j["Name"]] = unfinished line 
-                df.assign(industry='yyy')
-        
-    if False:
-        num_cols["low"] = num_cols["name"]
-        # lets create a set of data to make predictions on
-        # get all ages for each sport and gender
-        sports = df['sport'].unique()
-        ages = [ age for age in range(18, 101) ]
-        genders = [False] * (len(ages)*len(sports))
-        gender_m = [True] * len(genders)
-        genders.extend(gender_m)
-        # replicate ages to be for all sports (multiply by number of sports)
-        # then, double itself to get both genders
-        all_ages = []
-        for i in range(len(sports)):
-            all_ages.extend(ages)
-        all_ages.extend(all_ages)
-        # replicate sports to be for all ages (multiply by number of ages)
-        # then, double itself to get both genders
-        all_sports = []
-        for i in range(len(ages)):
-            all_sports.extend(sports)
-        all_sports.extend(all_sports)
+        max = num_cols.loc[i,"max"]
+        min = num_cols.loc[i,"min"]
+        ml_data = list()
+        graph_data = list()
+        '''
+        #how to fix the np.arrange floating point imprecision
+        start = 0.0
+        stop = 0.6
+        step = 0.2
 
-        # create the dataframe structured like original features during training
-        df_features = pd.DataFrame({'male':genders, 'age':all_ages, 'sport':all_sports})
-        return df_features
+        num = round((stop - start) / step) + 1   # i.e. length of resulting array
+        np.linspace(start, stop, num)
+        '''
+        for j in np.arange(min,max+((max-min)/1000),(max-min)/1000):
+            ml_data.append(j)
+            graph_data.append(((j/max) * 100))
+        final[i] = ml_data #1000 datapoints to plot?
+        #created 'a'
+        dfs = pd.DataFrame({name: [False] * len(ml_data) for name in bool_cols})
+        final = pd.concat([final,dfs], axis=1)
+        #added h and i
+        for j in [c for c in names if c != i]:
+            final[j]=num_cols.loc[j,"avg"] #probably better way to do this
+        #adds the rest of numbers
+        
+        fig, ax = plt.subplots()
+        final = final.reindex(columns=featcols)
+
+        severity_pred = model.predict(final)
+        plt.scatter(graph_data,severity_pred)
+        plt.grid(True)
+        plt.xlabel(str(i))
+        plt.ylabel("Severity Prediction")
+        plt.title("How " + str(i) + " influences model predictions")
+        plt.savefig("data_organized\\"+str(i)+"_predictions_from_features.jpg", dpi=600)
+        plt.close(fig)
+        
+        
+    
+    
+    
+
 
 if __name__ == "__main__":
     model = None
@@ -297,7 +367,7 @@ if __name__ == "__main__":
     #generate new model using True, otherwise leave false to read stored model
     newmodel = False
     newmodel2 = False
-    feat,label = prep_data(pd.concat(
+    feat,label,featcols = prep_data(pd.concat(
         map(pd.read_csv, ['data\output_0.csv', 'data\output_1.csv', 'data\output_2.csv', 'data\output_3.csv', 'data\output_4.csv', 'data\output_5.csv', 'data\output_6.csv', 'data\output_7.csv'])
         ))
     if newmodel:
@@ -323,6 +393,6 @@ if __name__ == "__main__":
     else:
         with open('model_rfc.pkl', 'rb') as f: #load model back into memory
             model2 = pickle.load(f)
+    model2 = model_RFC(feat,label,model=model2)
     show_importance(model2,feat)
-
-    create_all_features(feat,label,model2)
+    #create_all_features(feat,label,model2,featcols)
