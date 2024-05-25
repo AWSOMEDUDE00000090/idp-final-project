@@ -221,7 +221,9 @@ def prep_data(df):
     print("finished prepping ml data")
     return df, labels
 
-def create_all_features(df):
+def create_all_features(feat,label,model):
+    df = feat.merge(label,how = 'inner', right_index = True, left_index = True)#should be on index
+    print(df.columns)
     '''
     ['Severity','Start_Time','Sunrise_Sunset','Start_Lat','Start_Lng',
     'State','Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)',
@@ -229,38 +231,65 @@ def create_all_features(df):
     'Amenity','Bump','Crossing','Give_Way','Junction','No_Exit','Railway','Roundabout',
     'Station','Stop','Traffic_Calming','Traffic_Signal','Turning_Loop']
     '''
-    #find ranges by doing max and min on all of the columns
+    #TODO find ranges by doing max and min on all of the columns
     bool_cols = df.select_dtypes(include=[bool]).columns
     num_cols = pd.DataFrame()
     num_cols["Name"] = df.select_dtypes(include=[int, float]).columns
+    #TODO get constant averages for all values
+    
+    print(bool_cols)
+    print(num_cols)
+    num_cols['min'] = [df[i].min() for i in num_cols["Name"]]
+    num_cols['max'] = [df[i].max() for i in num_cols["Name"]]
+    num_cols['avg'] = [df[i].mean() for i in num_cols["Name"]] #location mean?
+    print(num_cols)
 
-    boolean_variations = df.loc[:,bool_cols].unique()
-    print(boolean_variations)
+    weather = list()
+    states = list()
+    poi = list()
+    for i in range(len(bool_cols)):
+        if bool_cols[i].startswith("Weather"):
+                weather.append(bool_cols[i])
+        elif bool_cols[i].startswith("State"):
+            states.append(bool_cols[i])
+        else:
+            poi.append(bool_cols[i])
+    #no need for bool cols anymore
 
-    num_cols["low"] = num_cols["name"]
-    # lets create a set of data to make predictions on
-    # get all ages for each sport and gender
-    sports = df['sport'].unique()
-    ages = [ age for age in range(18, 101) ]
-    genders = [False] * (len(ages)*len(sports))
-    gender_m = [True] * len(genders)
-    genders.extend(gender_m)
-    # replicate ages to be for all sports (multiply by number of sports)
-    # then, double itself to get both genders
-    all_ages = []
-    for i in range(len(sports)):
-        all_ages.extend(ages)
-    all_ages.extend(all_ages)
-    # replicate sports to be for all ages (multiply by number of ages)
-    # then, double itself to get both genders
-    all_sports = []
-    for i in range(len(ages)):
-        all_sports.extend(sports)
-    all_sports.extend(all_sports)
+    for i in num_cols:
+        points = pd.Dataframe()
+        points["x"] = [((i/i["max"]) * 100) for i in range(i["min"],i["max"])] #all x
+        final = pd.DataFrame()
+        for j in num_cols:
+            if j != i:
+                #final[j["Name"]] = unfinished line 
+                df.assign(industry='yyy')
+        
+    if False:
+        num_cols["low"] = num_cols["name"]
+        # lets create a set of data to make predictions on
+        # get all ages for each sport and gender
+        sports = df['sport'].unique()
+        ages = [ age for age in range(18, 101) ]
+        genders = [False] * (len(ages)*len(sports))
+        gender_m = [True] * len(genders)
+        genders.extend(gender_m)
+        # replicate ages to be for all sports (multiply by number of sports)
+        # then, double itself to get both genders
+        all_ages = []
+        for i in range(len(sports)):
+            all_ages.extend(ages)
+        all_ages.extend(all_ages)
+        # replicate sports to be for all ages (multiply by number of ages)
+        # then, double itself to get both genders
+        all_sports = []
+        for i in range(len(ages)):
+            all_sports.extend(sports)
+        all_sports.extend(all_sports)
 
-    # create the dataframe structured like original features during training
-    df_features = pd.DataFrame({'male':genders, 'age':all_ages, 'sport':all_sports})
-    return df_features
+        # create the dataframe structured like original features during training
+        df_features = pd.DataFrame({'male':genders, 'age':all_ages, 'sport':all_sports})
+        return df_features
 
 if __name__ == "__main__":
     model = None
@@ -295,3 +324,5 @@ if __name__ == "__main__":
         with open('model_rfc.pkl', 'rb') as f: #load model back into memory
             model2 = pickle.load(f)
     show_importance(model2,feat)
+
+    create_all_features(feat,label,model2)
