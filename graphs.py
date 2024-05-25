@@ -153,13 +153,29 @@ def makeGraphs(df,country,highgdf):
     #would be nice to take the ones below 5% and plot them on a different pie, cuz its so small, while unifying them in the bigger pie
     temp = df['Visibility(mi)'].value_counts()
     fig = px.pie(temp, values='count', names=temp.index, title='Percentage of Accidents per Visibility')
-    #TODO uncomment fig.show()
+    #TODO uncomment 
+    fig.show()
     #temp2 = temp[temp.index != 10]
 
-    fig = px.violin(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
-    fig.update_traces(marker_color='green')
+    #fig = px.violin(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
+    #fig.update_traces(marker_color='green')
     #TODO uncomment fig.show()
+
+    fig = go.Figure()
+    names = ['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)',
+        'Visibility(mi)','Wind_Speed(mph)','Precipitation(in)'] #,'Sunrise_Sunset','Start_Lat','Start_Lng','Start_Time'
+    dropdown_buttons = []
+    for i,n in enumerate(names):
+        temp = df.groupby([n,'Severity']).size().reset_index(name="count")
+        fig.add_trace(go.Scatter(mode='markers',x=temp[n], y=temp["count"], marker_color=temp["Severity"],name=n,hovertemplate='<b>%{text}</b><br>' +'Count: %{y}<br>' +'Severity: %{marker.color}',text=[n]*len(temp),))
+        visible = ["legendonly"] * len(names)
+        visible[i] = True
+        dropdown_buttons.append({'label':n,'method':'update','args':[{'visible' : visible, 'title' : n, 'showlegend' : True}]})
     
+    fig.update_layout({'updatemenus':[{'type' : 'dropdown', 'buttons' : dropdown_buttons}]})#'width':800, 'height' : 400, 
+    #fig = px.scatter(temp, x="Humidity(%)", y="count", color="Severity", hover_data=['Humidity(%)',"count","Severity"]) #size='petal_length'
+    fig.show()
+    return
     #TODO I have only made graphs exploring these elements with the idea of the existance of their data showing crashing, i haven't looked into their effect on severity, duration, or distance
     
     #Our data has 5 fundemental catagories of information about crashes, our whole project
@@ -341,5 +357,5 @@ def makeGraphs(df,country,highgdf):
         
     ## road_types_bar(df)
         
-    plt.close()
+    plt.close('all')
     print("End")

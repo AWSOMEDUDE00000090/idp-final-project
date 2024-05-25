@@ -46,38 +46,73 @@ def model_SGD(features, labels, test_size=0.3, validation_split = 0.5): #validat
     
     return model
 
-def model_RFC(features, labels, test_size=0.3, validation_split = 0.5,model = None): #validation split not required for regression
+def model_RFC(features, labels, test_size=0.3, validation_split=0.5, model=None):
     print("starting model training")
-    # Split the data into training and testing sets
+    
+    # split the data 
     train_f, test_f, train_l, test_l = train_test_split(features, labels, test_size=test_size)
 
-    #we further split test_f and test_l so we have a validation set, so we can tune the model
-    #test_f, val_f, test_l, val_l = train_test_split(test_f, test_l, test_size=validation_split)
+    # initialize the random forest classifier
+    if model is None:
+        model = RandomForestClassifier(random_state=42)
 
-    # Initialize the Linear Regression model & train it
-    #loss = {'modified_huber', 'squared_hinge', 'log_loss', 'squared_error', 'huber', 'perceptron', 'epsilon_insensitive', 'squared_epsilon_insensitive', 'hinge'}
-    if model == None:
-        model = RandomForestClassifier(n_estimators=100, random_state=42) #also gradient boost tree, and validation set
-        #sgd optimizaition for logistic regression
+        param_grid = {
+            'n_estimators': [100, 200, 300],
+            'max_depth': [None, 10, 20],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 2, 4]
+        }
+
+        best_score = float('-inf')
+        best_params = None
+
+        for n_estimators in param_grid['n_estimators']:
+            for max_depth in param_grid['max_depth']:
+                for min_samples_split in param_grid['min_samples_split']:
+                    for min_samples_leaf in param_grid['min_samples_leaf']:
+                        model.set_params(n_estimators=n_estimators,
+                                         max_depth=max_depth,
+                                         min_samples_split=min_samples_split,
+                                         min_samples_leaf=min_samples_leaf)
+
+                        # Train the model
+                        print(n_estimators,max_depth,min_samples_split,min_samples_leaf)
+                        model.fit(train_f, train_l)
+
+                        # Evaluate the model
+                        label_predictions = model.predict(test_f)
+                        mse = mean_squared_error(test_l, label_predictions)
+
+                        # Update best hyperparameters if current configuration is better
+                        if mse > best_score:
+                            best_score = mse
+                            best_params = {
+                                'n_estimators': n_estimators,
+                                'max_depth': max_depth,
+                                'min_samples_split': min_samples_split,
+                                'min_samples_leaf': min_samples_leaf
+                            }
+
+        model.set_params(**best_params)
+        print("Best hyperparameters found:", best_params)
+
+    else:
         model.fit(train_f, train_l)
 
-    # Test the accuracy: Make predictions and show our MSE
     label_predictions = model.predict(test_f)
-    print(f'MSE : {mean_squared_error(test_l, label_predictions):.2f}')
-    
-    #print("Accuracy:", accuracy_score(test_f, label_predictions))
-    #print("Classification Report:")
-    #print(classification_report(test_f, label_predictions))
-    #print("Confusion Matrix:")
-    #print(confusion_matrix(test_f, label_predictions))
+    print(f'MSE: {mean_squared_error(test_l, label_predictions):.2f}')
+
+    # plot partial dependence plots
     bool_cols = features.select_dtypes(include=[bool]).columns
     num_cols = features.select_dtypes(include=[int, float]).columns
-    plot_ml_partial_dependence(model,train_f,num_cols,bool_cols)
+    plot_ml_partial_dependence(model, train_f, num_cols, bool_cols)
+    plot_ml_partial_dependence(model, train_f, num_cols, bool_cols, target=4)
+    
     return model
 
 #https://scikit-learn.org/stable/auto_examples/inspection/plot_partial_dependence.html#way-partial-dependence-with-different-models
 #I tried writing my own in create_all_features explanation on why it didn't work is there
-def plot_ml_partial_dependence(model,X_train,features,categorical_data):
+def plot_ml_partial_dependence(model,X_train,features,categorical_data,target=1):
     common_params = {
         "subsample": 50,
         "n_jobs": 2,
@@ -102,17 +137,17 @@ def plot_ml_partial_dependence(model,X_train,features,categorical_data):
         **features_info,
         ax=ax,
         **common_params,
-        target=1
+        target=target
     )
     print(f"done in {time.perf_counter() - tic:.3f}s")
     _ = display.figure_.suptitle(
         (
             "Partial dependence of all numerical features for the car crash \n"
-            "dataset with an RandomForestClassifier targeting severity 4"
+            "dataset with an RandomForestClassifier targeting severity "+str(target)
         ),
         fontsize=16,
     )
-    plt.savefig('mlpartialdependency4.jpg', dpi=600)
+    plt.savefig('mlpartialdependency'+str(target)+'.jpg', dpi=600)
 
 
 def model_SGD(features, labels, test_size=0.3, validation_split = 0.5): #validation split not required for regression
@@ -370,6 +405,20 @@ if __name__ == "__main__":
     feat,label,featcols = prep_data(pd.concat(
         map(pd.read_csv, ['data\output_0.csv', 'data\output_1.csv', 'data\output_2.csv', 'data\output_3.csv', 'data\output_4.csv', 'data\output_5.csv', 'data\output_6.csv', 'data\output_7.csv'])
         ))
+    
+    #model_mean_square(model,feat,label)
+    #show_coefficients_SGD(model,feat)
+    #show_importance(model, feat)
+    if newmodel2:
+        model2 = model_RFC(feat,label)
+        with open('model_rfc.pkl', 'wb') as f:
+            pickle.dump(model2, f)
+    else:
+        with open('model_rfc.pkl', 'rb') as f: #load model back into memory
+            model2 = pickle.load(f)
+    show_importance(model2,feat)
+    model2 = model_RFC(feat,label)
+    print("GOGOGOGO")
     if newmodel:
         model = model_SGD(feat,label)
         with open('model2.pkl', 'wb') as f:
@@ -383,16 +432,4 @@ if __name__ == "__main__":
             Use at your own risk. For more info please refer to: 
             https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
             '''
-    #model_mean_square(model,feat,label)
-    #show_coefficients_SGD(model,feat)
-    #show_importance(model, feat)
-    if newmodel2:
-        model2 = model_RFC(feat,label)
-        with open('model_rfc.pkl', 'wb') as f:
-            pickle.dump(model2, f)
-    else:
-        with open('model_rfc.pkl', 'rb') as f: #load model back into memory
-            model2 = pickle.load(f)
-    model2 = model_RFC(feat,label,model=model2)
-    show_importance(model2,feat)
     #create_all_features(feat,label,model2,featcols)
