@@ -167,7 +167,7 @@ def makeGraphs(df,country,highgdf):
     dropdown_buttons = []
     for i,n in enumerate(names):
         temp = df.groupby([n,'Severity']).size().reset_index(name="count")
-        fig.add_trace(go.Scatter(mode='markers',x=temp[n], y=temp["count"], marker_color=temp["Severity"],name=n,hovertemplate='<b>%{text}</b><br>' +'Count: %{y}<br>' +'Severity: %{marker.color}',text=[n]*len(temp),))
+        fig.add_trace(go.Scatter(mode='markers',x=temp[n], y=temp["count"], marker_color=temp["Severity"],name=n,hovertemplate='<b>%{text}</b><br>' +'Value: %{x}<br>' +'Count: %{y}<br>' +'Severity: %{marker.color}',text=[n]*len(temp),))
         visible = ["legendonly"] * len(names)
         visible[i] = True
         dropdown_buttons.append({'label':n,'method':'update','args':[{'visible' : visible, 'title' : n, 'showlegend' : True}]})
