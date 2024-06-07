@@ -152,7 +152,26 @@ def makeGraphs(df,country,highgdf):
     #TODO probably better to make this a regular graph 
     #would be nice to take the ones below 5% and plot them on a different pie, cuz its so small, while unifying them in the bigger pie
     temp = df['Visibility(mi)'].value_counts()
-    fig = px.pie(temp, values='count', names=temp.index, title='Percentage of Accidents per Visibility')
+    
+    
+    temp = temp.reset_index()
+    temp["adjustedval"] = temp["Visibility(mi)"]
+    temp["adjustedval"]=temp["adjustedval"].apply(lambda x : round(min(x,10), 0))
+    print(temp.head())
+    temp = temp.rename(columns={"count": "specific_count"})
+    print(temp.head())
+    temp2 = temp
+    temp = temp.groupby('adjustedval')['specific_count'].sum().reset_index()
+    #TODO merge the unique 'visibility' vals back into temp
+    print(temp.head())
+    #fig = px.pie(temp, values='specific_count', names="adjustedval", title='Percentage of Accidents per Visibility')
+    fig = px.sunburst(
+    temp,
+    names='adjustedval',
+    parents='parent',
+    values='specific_count',
+    )
+    
     #TODO uncomment 
     fig.show()
     #temp2 = temp[temp.index != 10]
@@ -175,6 +194,8 @@ def makeGraphs(df,country,highgdf):
     fig.update_layout({'updatemenus':[{'type' : 'dropdown', 'buttons' : dropdown_buttons}]})#'width':800, 'height' : 400, 
     #fig = px.scatter(temp, x="Humidity(%)", y="count", color="Severity", hover_data=['Humidity(%)',"count","Severity"]) #size='petal_length'
     fig.show()
+    #TODO remove this
+    plt.close('all')
     return
     #TODO I have only made graphs exploring these elements with the idea of the existance of their data showing crashing, i haven't looked into their effect on severity, duration, or distance
     
