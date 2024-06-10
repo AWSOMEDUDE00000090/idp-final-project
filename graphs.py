@@ -72,7 +72,7 @@ def makeGraphs(df,country,highgdf):
     ax.set_yticklabels([])
     ax.set_xticklabels([])
     plt.title('Crash Locations in the US visualized February 2016 to Dec 2020')
-    gdf2.plot(aspect=1,ax=ax,markersize=0.1,cmap='PuBu') #column="POP2010"
+    gdf2.plot(aspect=1,ax=ax,markersize=0.1,cmap='RdYlGn') #column="POP2010"
     plt.savefig('america.jpg', dpi=600)
 
     #show crashes per state
@@ -87,7 +87,7 @@ def makeGraphs(df,country,highgdf):
     #turn off tick lables, as they aren't usefull
     ax.set_yticklabels([])
     ax.set_xticklabels([])
-    country2.plot(column = 'ID',ax=ax,legend=True)
+    country2.plot(column = 'ID',ax=ax,legend=True,cmap="RdYlGn")
 
     #plt.xlabel('x label')
     #plt.ylabel('y label')
@@ -107,7 +107,7 @@ def makeGraphs(df,country,highgdf):
     #turn off tick lables, as they aren't usefull
     ax.set_yticklabels([])
     ax.set_xticklabels([])
-    country2.plot(column = 'crashsesperpop',ax=ax,legend=True)
+    country2.plot(column = 'crashsesperpop',ax=ax,legend=True,cmap="RdYlGn")
     plt.title('Crashes Per Person Per State (2020)')
     plt.savefig('statesadjusted.jpg', dpi=600)
 
@@ -137,15 +137,27 @@ def makeGraphs(df,country,highgdf):
                 loc = loc //2
             plt.text(i, loc, x[i] + f" ({y[i]})",rotation = 90,ha = 'center',va='bottom')
     common["Name"] = common.apply(makename,axis=1)
-    common = common.nlargest(10, 'count')
+    common2 = common.nlargest(10, 'count')
     fig, ax = plt.subplots()
     #plt.xticks(rotation=90)
     ax.set_xticklabels([])
     plt.title('10 most common elements near a crash February 2016 to Dec 2020')
-    addlabels(common["Name"], common['count'])
+    addlabels(common2["Name"], common2['count'])
     plt.ylabel('Crash Count')
-    ax.bar(common["Name"], common['count'])#, label=bar_labels, color=bar_colors
+    ax.bar(common2["Name"], common2['count'])#, label=bar_labels, color=bar_colors
     plt.savefig('situations.jpg', dpi=600)
+
+    #TODO FIX FIX FIX FIX FIX 
+
+    common3=common.drop(common[common['Name'] == 'Nothing'].index)
+    fig, ax = plt.subplots()
+    #plt.xticks(rotation=90)
+    ax.set_xticklabels([])
+    plt.title('10 most common elements near a crash February 2016 to Dec 2020')
+    addlabels(common3["Name"], common3['count'])
+    plt.ylabel('Crash Count')
+    ax.bar(common3["Name"], common3['count'])#, label=bar_labels, color=bar_colors
+    plt.savefig('situations2.jpg', dpi=600)
     #plt.bar(courses, values, color ='maroon', width = 0.4)
     
     #Interactive Graphs
