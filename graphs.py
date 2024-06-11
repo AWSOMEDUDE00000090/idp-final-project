@@ -72,7 +72,7 @@ def makeGraphs(df,country,highgdf):
     ax.set_yticklabels([])
     ax.set_xticklabels([])
     plt.title('Crash Locations in the US visualized February 2016 to Dec 2020')
-    gdf2.plot(aspect=1,ax=ax,markersize=0.1,cmap='RdYlGn') #column="POP2010"
+    gdf2.plot(aspect=1,ax=ax,markersize=0.1,cmap='RdYlGn_r') #column="POP2010"
     plt.savefig('america.jpg', dpi=600)
 
     #show crashes per state
@@ -87,7 +87,7 @@ def makeGraphs(df,country,highgdf):
     #turn off tick lables, as they aren't usefull
     ax.set_yticklabels([])
     ax.set_xticklabels([])
-    country2.plot(column = 'ID',ax=ax,legend=True,cmap="RdYlGn")
+    country2.plot(column = 'ID',ax=ax,legend=True,cmap="RdYlGn_r")
 
     #plt.xlabel('x label')
     #plt.ylabel('y label')
@@ -107,7 +107,7 @@ def makeGraphs(df,country,highgdf):
     #turn off tick lables, as they aren't usefull
     ax.set_yticklabels([])
     ax.set_xticklabels([])
-    country2.plot(column = 'crashsesperpop',ax=ax,legend=True,cmap="RdYlGn")
+    country2.plot(column = 'crashsesperpop',ax=ax,legend=True,cmap="RdYlGn_r")
     plt.title('Crashes Per Person Per State (2020)')
     plt.savefig('statesadjusted.jpg', dpi=600)
 
@@ -130,12 +130,17 @@ def makeGraphs(df,country,highgdf):
         else:
             return out
     
-    def addlabels(x,y):
+    def addlabels(x,y,check={0}):
         for i in range(len(x)):
+            c='black'
             loc = y[i]
-            if i == 0:
+            if i in check:
                 loc = loc //2
-            plt.text(i, loc, x[i] + f" ({y[i]})",rotation = 90,ha = 'center',va='bottom')
+                c='white'
+                if i == 2:
+                    loc = loc //6
+            plt.text(i, loc, x[i] + f" ({y[i]})",rotation = 90,ha = 'center',va='bottom',color=c)
+    
     common["Name"] = common.apply(makename,axis=1)
     common2 = common.nlargest(10, 'count')
     fig, ax = plt.subplots()
@@ -150,11 +155,13 @@ def makeGraphs(df,country,highgdf):
     #TODO FIX FIX FIX FIX FIX 
 
     common3=common.drop(common[common['Name'] == 'Nothing'].index)
+    common3 = common3.nlargest(10, 'count').reset_index()
     fig, ax = plt.subplots()
     #plt.xticks(rotation=90)
     ax.set_xticklabels([])
     plt.title('10 most common elements near a crash February 2016 to Dec 2020')
-    addlabels(common3["Name"], common3['count'])
+
+    addlabels(common3["Name"], common3['count'],{0,1,2})
     plt.ylabel('Crash Count')
     ax.bar(common3["Name"], common3['count'])#, label=bar_labels, color=bar_colors
     plt.savefig('situations2.jpg', dpi=600)
@@ -163,24 +170,24 @@ def makeGraphs(df,country,highgdf):
     #Interactive Graphs
     #TODO probably better to make this a regular graph 
     #would be nice to take the ones below 5% and plot them on a different pie, cuz its so small, while unifying them in the bigger pie
+    fig = go.Figure()
+    
     temp = df['Visibility(mi)'].value_counts()
     
-    
+    #parent child count
     temp = temp.reset_index()
+    print(temp)
     temp["adjustedval"] = temp["Visibility(mi)"]
-    temp["adjustedval"]=temp["adjustedval"].apply(lambda x : round(min(x,10), 0))
-    print(temp.head())
+    temp["adjustedval"]=temp["adjustedval"].apply(lambda x : round(min(x,10), 0) if x != round(min(x,10), 0) else "")
+    temp["adjustedval2"] = temp["Visibility(mi)"]
+    temp["adjustedval2"]=temp["adjustedval2"].apply(lambda x : round(x, 2))
+    print(temp)
     temp = temp.rename(columns={"count": "specific_count"})
-    print(temp.head())
-    temp2 = temp
-    temp = temp.groupby('adjustedval')['specific_count'].sum().reset_index()
-    #TODO merge the unique 'visibility' vals back into temp
-    print(temp.head())
-    #fig = px.pie(temp, values='specific_count', names="adjustedval", title='Percentage of Accidents per Visibility')
+    print(temp)
     fig = px.sunburst(
     temp,
-    names='adjustedval',
-    parents='parent',
+    names='Visibility(mi)',
+    parents='adjustedval',
     values='specific_count',
     )
     
@@ -191,7 +198,8 @@ def makeGraphs(df,country,highgdf):
     #fig = px.violin(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
     #fig.update_traces(marker_color='green')
     #TODO uncomment fig.show()
-
+    plt.close('all')
+    return
     fig = go.Figure()
     names = ['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)',
         'Visibility(mi)','Wind_Speed(mph)','Precipitation(in)'] #,'Sunrise_Sunset','Start_Lat','Start_Lng','Start_Time'
