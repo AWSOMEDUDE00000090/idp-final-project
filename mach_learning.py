@@ -105,6 +105,9 @@ def model_RFC(features, labels, test_size=0.3, validation_split=0.5, model=None)
     # plot partial dependence plots
     bool_cols = features.select_dtypes(include=[bool]).columns
     num_cols = features.select_dtypes(include=[int, float]).columns
+    plot_ml_partial_dependence(model, train_f, num_cols, bool_cols, target=2)
+    plot_ml_partial_dependence(model, train_f, num_cols, bool_cols, target=3)
+    print("DONE WITH NESCESSARY GRAPHS")
     plot_ml_partial_dependence(model, train_f, num_cols, bool_cols)
     plot_ml_partial_dependence(model, train_f, num_cols, bool_cols, target=4)
     
@@ -400,8 +403,7 @@ if __name__ == "__main__":
     model = None
     model2 = None
     #generate new model using True, otherwise leave false to read stored model
-    newmodel = False
-    newmodel2 = False
+    newmodel2 = True
     feat,label,featcols = prep_data(pd.concat(
         map(pd.read_csv, ['data\output_0.csv', 'data\output_1.csv', 'data\output_2.csv', 'data\output_3.csv', 'data\output_4.csv', 'data\output_5.csv', 'data\output_6.csv', 'data\output_7.csv'])
         ))
@@ -419,17 +421,4 @@ if __name__ == "__main__":
     show_importance(model2,feat)
     model2 = model_RFC(feat,label)
     print("GOGOGOGO")
-    if newmodel:
-        model = model_SGD(feat,label)
-        with open('model2.pkl', 'wb') as f:
-            pickle.dump(model, f)
-    else:
-        with open('model2.pkl', 'rb') as f: #load model back into memory
-            model = pickle.load(f)
-            '''
-            InconsistentVersionWarning: Trying to unpickle estimator SGDClassifier from version 1.3.1 
-            when using version 1.5.0. This might lead to breaking code or invalid results.
-            Use at your own risk. For more info please refer to: 
-            https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
-            '''
     #create_all_features(feat,label,model2,featcols)

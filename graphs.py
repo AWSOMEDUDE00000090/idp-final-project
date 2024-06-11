@@ -170,27 +170,50 @@ def makeGraphs(df,country,highgdf):
     #Interactive Graphs
     #TODO probably better to make this a regular graph 
     #would be nice to take the ones below 5% and plot them on a different pie, cuz its so small, while unifying them in the bigger pie
-    fig = go.Figure()
     
-    temp = df['Visibility(mi)'].value_counts()
+    dft = df[["Start_Time"]] # Sunrise_Sunset #,"State"
+    allcount = dft.size
+
+    dft["Start_Time"] = pd.to_datetime(dft['Start_Time'],format='mixed')
+    dft["Year"] = dft['Start_Time'].dt.year
+    dft["Month"] = dft['Start_Time'].dt.strftime('%Y-%m')
+
+    yearly_counts = dft.groupby(dft['Start_Time'].dt.year).size().reset_index(name="count")
+    print(yearly_counts)
+
+    print(dft)
+    dft=dft.drop('Start_Time', axis=1)
+    dft = dft.value_counts().reset_index()
+    print(dft)
+
+    #dft["Month"] = str(dft["Year"])+"-"+str(dft["Month"])
+    #yearly_counts = dft.groupby(dft['Start_Time'].dt.month).size()
+    #monthly_counts = dft.groupby(dft['Start_Time'].dt.month).size()
+    df63 = pd.DataFrame()
+    df63["labels"] =["All"] + yearly_counts["Start_Time"].to_list()+ dft["Month"].to_list()
+    df63["parents"] =[""] + (["All"] * yearly_counts.shape[0])+  dft["Year"].to_list()
+    df63["values"] = [allcount]+ yearly_counts["count"].to_list() +dft["count"].to_list()
+    df63.to_csv("data2.csv")
+    print(df63)
+    #year
+    #month
+    #night/day
+
+    fig =go.Figure(go.Sunburst(
+        labels=["All"] + yearly_counts["Start_Time"].to_list()+ dft["Month"].to_list(), #"Sunrise_Sunset"
+        parents=[""] + ["All"] * yearly_counts.shape[0]+  dft["Year"].to_list(),
+        values=[allcount]+ yearly_counts["count"].to_list() +dft["count"].to_list(),
+        branchvalues="total"
+    ))
     
-    #parent child count
-    temp = temp.reset_index()
-    print(temp)
-    temp["adjustedval"] = temp["Visibility(mi)"]
-    temp["adjustedval"]=temp["adjustedval"].apply(lambda x : round(min(x,10), 0) if x != round(min(x,10), 0) else "")
-    temp["adjustedval2"] = temp["Visibility(mi)"]
-    temp["adjustedval2"]=temp["adjustedval2"].apply(lambda x : round(x, 2))
-    print(temp)
-    temp = temp.rename(columns={"count": "specific_count"})
-    print(temp)
-    fig = px.sunburst(
-    temp,
-    names='Visibility(mi)',
-    parents='adjustedval',
-    values='specific_count',
-    )
-    
+    hover_template = "<b>%{label}</b><br>Value: %{value}<br>Percentage: %{percentRoot}"
+
+    # Update layout to display hover info without 'trace0' label
+    fig.update_traces(hoverinfo="text", hovertemplate=hover_template)
+    fig.update_layout(title="Crashes in the United States",hoverlabel=dict(bgcolor="white", font_size=12, font_family="Arial", bordercolor="black"))
+
+
+
     #TODO uncomment 
     fig.show()
     #temp2 = temp[temp.index != 10]
@@ -198,8 +221,6 @@ def makeGraphs(df,country,highgdf):
     #fig = px.violin(df, x='Severity', y='Visibility(mi)') #, render_mode='webgl'
     #fig.update_traces(marker_color='green')
     #TODO uncomment fig.show()
-    plt.close('all')
-    return
     fig = go.Figure()
     names = ['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)',
         'Visibility(mi)','Wind_Speed(mph)','Precipitation(in)'] #,'Sunrise_Sunset','Start_Lat','Start_Lng','Start_Time'
@@ -211,12 +232,10 @@ def makeGraphs(df,country,highgdf):
         visible[i] = True
         dropdown_buttons.append({'label':n,'method':'update','args':[{'visible' : visible, 'title' : n, 'showlegend' : True}]})
     
-    fig.update_layout({'updatemenus':[{'type' : 'dropdown', 'buttons' : dropdown_buttons}]})#'width':800, 'height' : 400, 
+    fig.update_layout({'updatemenus':[{'type' : 'dropdown', 'buttons' : dropdown_buttons}]}, title="Plots for the weather conditions with severity in the US")#'width':800, 'height' : 400, 
     #fig = px.scatter(temp, x="Humidity(%)", y="count", color="Severity", hover_data=['Humidity(%)',"count","Severity"]) #size='petal_length'
     fig.show()
     #TODO remove this
-    plt.close('all')
-    return
     #TODO I have only made graphs exploring these elements with the idea of the existance of their data showing crashing, i haven't looked into their effect on severity, duration, or distance
     
     #Our data has 5 fundemental catagories of information about crashes, our whole project
@@ -290,7 +309,7 @@ def makeGraphs(df,country,highgdf):
     ax.set_yticklabels([])
     ax.set_xticklabels([])
     ax.axis('off')
-    country2.plot(categorical = True,column = 'Hour',ax=ax,legend=True,legend_kwds={'bbox_to_anchor': (1, 0.4)}, cmap='viridis')
+    country2.plot(categorical = True,column = 'Hour',ax=ax,legend=True,legend_kwds={'bbox_to_anchor': (1, 0.4)}, cmap='RdYlGn_r')
     plt.savefig('whenaccidents_state.jpg', dpi=600)
 
 
@@ -315,22 +334,28 @@ def makeGraphs(df,country,highgdf):
     #end
 
     fig, ax = plt.subplots(figsize=(7, 5))
-    plt.title('Month with Most Accidents Happen per State')
+    plt.title('Which months had the most accidents per state')
     ax.set_yticklabels([])
     ax.set_xticklabels([])
     ax.axis('off')
-    country2.plot(categorical = True,column = 'Month',ax=ax,legend=True,legend_kwds={'bbox_to_anchor': (1, 0.4)}, cmap='viridis')
+    country2.plot(categorical = True,column = 'Month',ax=ax,legend=True,legend_kwds={'bbox_to_anchor': (1, 0.4)}, cmap='RdYlGn_r')
     plt.savefig('whenaccidents_state_month.jpg', dpi=600)
+
+    
 
 
     #weather = ['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)','Visibility(mi)','Wind_Speed(mph)','Precipitation(in)','Weather_Condition']
     #['Temperature(F)','Wind_Chill(F)','Humidity(%)','Pressure(in)','Visibility(mi)','Wind_Speed(mph)','Precipitation(in)']
     #TODO didn't make graph for weather condition yet.
     matplotlib.use('Agg') #required to not run out of memory
-    def scattergraph(df,x,xlabel="",ylabel="# of crashes",title="",filename="idk.jpg",outliers_val=-1,grid=True):
+    def scattergraph(df,x,xlabel="",ylabel="# of crashes",title="",filename="idk.jpg",outliers_val=-1,grid=True,remove=-1,after=False):
         if xlabel == "":
             xlabel = x
         temp = df[x].value_counts().reset_index()
+        if remove != -1:
+            temp = temp[temp[x] != remove]  
+            if after:
+                temp = temp[temp[x] < remove]  
         fig, ax = plt.subplots()
         plt.grid(grid)
         plt.xlabel(xlabel)
@@ -368,6 +393,11 @@ def makeGraphs(df,country,highgdf):
             plt.savefig("_".join(filename), dpi=600)
             plt.close(fig)
        
+    scattergraph(df,'Visibility(mi)',title='# of crashes against Visibility',filename='visibility3.jpg',outliers_val=20000,remove=10,after=True)
+    plt.close('all')
+    print("End")
+    return
+
     #can be used to look for connections
     scattergraph(df,'Temperature(F)',title='# of crashes against Temperature',filename='temperture.jpg',outliers_val=11000)
     scattergraph(df,'Wind_Chill(F)',title='# of crashes against Wind Chill',filename='windchill.jpg',outliers_val=7900)
@@ -377,6 +407,8 @@ def makeGraphs(df,country,highgdf):
     scattergraph(df,'Wind_Speed(mph)',title='# of crashes against Wind Speed',filename='windspeed.jpg',outliers_val=15000)
     scattergraph(df,'Precipitation(in)',title='# of crashes against Precipitation',filename='precipitation.jpg',outliers_val=50000)
 
+
+    
     severitygraph(df,'Temperature(F)',title='# of crashes against Temperature',filename='temperture.jpg',outliers_val=11000)
     severity = df[["Severity", "Temperature(F)"]]
     for i in range(1,5):
